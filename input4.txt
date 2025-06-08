@@ -1,0 +1,19 @@
+program logica;
+
+var
+  a, b: integer;
+
+function esmayor(x, y: integer): boolean;
+begin
+  esmayor := x > y;
+end;
+
+begin
+  a := 4;
+  b := 2;
+
+  if esmayor(a, b) then
+    writeln(1)
+  else
+    writeln(0);
+end.

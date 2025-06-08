@@ -1,0 +1,21 @@
+program contar;
+
+var
+  i, total: integer;
+
+begin
+  i := 1;
+  total := 0;
+
+  while i <= 5 do
+  begin
+    if i - (i / 2) * 2 == 0 then
+    begin
+      writeln(i);
+      total := total + i;
+    end;
+    i := i + 1;
+  end;
+
+  writeln(total);
+end.
