@@ -1,7 +1,10 @@
 program demo;
+
 var i, resultfor, countback : integer;
+
 begin
   resultfor := 0;
+
   for i := 1 to 5 do
     resultfor := resultfor + i;
   writeln(resultfor);

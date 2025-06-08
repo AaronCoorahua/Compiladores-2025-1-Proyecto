@@ -12,8 +12,5 @@ begin
   a := 4;
   b := 2;
 
-  if esmayor(a, b) then
-    writeln(1)
-  else
-    writeln(0);
+  writeln(esmayor(a, b));
 end.
