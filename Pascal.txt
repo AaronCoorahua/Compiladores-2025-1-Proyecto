@@ -1,0 +1,35 @@
+Program        ::= 'program' id ';' VarDecList FunDecList? 'begin' StmtList 'end.'
+
+VarDecList     ::= ('var' VarList ':' Type ';')*
+FunDecList     ::= (FunctionDec)*
+
+FunctionDec    ::= 'function' id '(' ParamList? ')' ':' Type ';' 'begin' StmtList 'end' ';'
+
+ParamList      ::= Param (',' Param)*
+Param          ::= id ':' Type
+
+VarList        ::= id (',' id)*
+Type           ::= 'integer' | 'boolean'
+
+StmtList       ::= (Stmt ';')*
+
+Stmt           ::= id ':=' CExp
+                | 'writeln' '(' CExp ')'
+                | 'return' '(' CExp? ')'
+                | 'if' CExp 'then' BlockOrStmt ('else' BlockOrStmt)?
+                | 'while' CExp 'do' BlockOrStmt
+                | 'for' id ':=' CExp ('to' | 'downto') CExp 'do' BlockOrStmt
+
+BlockOrStmt    ::= Stmt | 'begin' StmtList 'end'
+
+CExp           ::= Exp (('<' | '<=' | '>' | '>=' | '==') Exp)?
+Exp            ::= Term (('+' | '-') Term)*
+Term           ::= Factor (('*' | '/') Factor)*
+Factor         ::= id
+                | num
+                | 'true'
+                | 'false'
+                | '(' CExp ')'
+                | id '(' ArgList? ')'
+
+ArgList        ::= CExp (',' CExp)*
