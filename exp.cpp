@@ -40,6 +40,14 @@ IfStatement::~IfStatement() { delete condition; delete then; delete els; }
 WhileStatement::WhileStatement(Exp* c, Body* b): condition(c), b(b) {}
 WhileStatement::~WhileStatement() { delete condition; delete b; }
 
+ForStatement::ForStatement(std::string id, Exp* s, Exp* e, bool d, Body* b)
+    : id(std::move(id)), start(s), end(e), downto(d), body(b) {}
+ForStatement::~ForStatement() {
+    delete start;
+    delete end;
+    delete body;
+}
+
 /* ---------------------------- Var-Decs ------------------------------- */
 VarDec::VarDec(string t, list<string> v)
         : type(std::move(t)), vars(std::move(v)) {}

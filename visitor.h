@@ -10,7 +10,7 @@
 class BinaryExp;  class NumberExp;  class BoolExp;
 class IdentifierExp; class IFExp;   class FCallExp;
 class AssignStatement; class PrintStatement;
-class IfStatement; class WhileStatement;
+class IfStatement; class WhileStatement; class ForStatement;
 class VarDec; class VarDecList; class StatementList; class Body;
 class FunDec; class FunDecList; class ReturnStatement; class Program;
 
@@ -29,6 +29,7 @@ public:
     virtual void visit(AssignStatement*) = 0;
     virtual void visit(PrintStatement*)  = 0;
     virtual void visit(IfStatement*)     = 0;
+    virtual void visit(ForStatement*)    = 0;
     virtual void visit(WhileStatement*)  = 0;
     virtual void visit(ReturnStatement*) = 0;
 
@@ -61,6 +62,7 @@ public:
     void visit(AssignStatement*) override;
     void visit(PrintStatement*)  override;
     void visit(IfStatement*)     override;
+    void visit(ForStatement*)  override;
     void visit(WhileStatement*)  override;
     void visit(ReturnStatement*) override;
     void visit(VarDec*)          override;
@@ -98,6 +100,7 @@ public:
     void visit(AssignStatement*) override;
     void visit(PrintStatement*)  override;
     void visit(IfStatement*)     override;
+    void visit(ForStatement*)  override;
     void visit(WhileStatement*)  override;
     void visit(ReturnStatement*) override;
     void visit(VarDec*)          override;

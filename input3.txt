@@ -1,4 +1,4 @@
-program while;
+program whileprogram;
 
 var
   i, suma: integer;

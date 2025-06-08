@@ -113,6 +113,20 @@ public:
     int accept(Visitor*) override;
 };
 
+class ForStatement : public Stm {
+public:
+    std::string id;
+    Exp *start, *end;
+    bool downto;
+    Body *body;
+
+    ForStatement(std::string id, Exp* s, Exp* e, bool d, Body* b);
+    ~ForStatement() override;
+
+    int accept(Visitor* v) override;
+};
+
+
 class WhileStatement : public Stm {
 public:
     Exp*  condition;

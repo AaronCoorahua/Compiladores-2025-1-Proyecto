@@ -20,7 +20,7 @@ public:
         BEGIN_KW, END_KW,
         IF, THEN, ELSE,
         WHILE, DO,
-        FOR, IN, RANGE,
+        FOR, TO, DOWNTO,
         WRITELN,
         RETURN,
         TRUE, FALSE,

@@ -188,6 +188,22 @@ Stm* Parser::parseStatement(){
         return new WhileStatement(cond, body);
     }
 
+    if (match(Token::FOR)){
+        match(Token::ID);  std::string id = previous->text;
+        match(Token::ASSIGN);
+        Exp* inicio = parseCExp();
+
+        bool isDown = false;
+        if (match(Token::TO))        isDown = false;
+        else { match(Token::DOWNTO); isDown = true; }
+
+        Exp* fin = parseCExp();
+        match(Token::DO);
+        Body* cuerpo = parseBlockOrStmt();
+
+        return new ForStatement(id, inicio, fin, isDown, cuerpo);
+    }
+
     cerr << "Sentencia inesperada: " << *current << endl;
     exit(1);
 }

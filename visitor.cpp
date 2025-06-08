@@ -17,6 +17,7 @@ int FCallExp      ::accept(Visitor* v){ return v->visit(this); }
 int AssignStatement ::accept(Visitor* v){ v->visit(this); return 0; }
 int PrintStatement  ::accept(Visitor* v){ v->visit(this); return 0; }
 int IfStatement     ::accept(Visitor* v){ v->visit(this); return 0; }
+int ForStatement    ::accept(Visitor* v){ v->visit(this); return 0; }
 int WhileStatement  ::accept(Visitor* v){ v->visit(this); return 0; }
 int ReturnStatement ::accept(Visitor* v){ v->visit(this); return 0; }
 /* listas / cuerpos */
@@ -247,4 +248,37 @@ void EVALVisitor::visit(Program* p){
     p->mainBody->accept(this);
     env.remove_level();
 }
+
 void EVALVisitor::ejecutar(Program* p){ visit(p); }
+
+
+void PrintVisitor::visit(ForStatement* s){
+    cout << "for " << s->id << " := ";
+    s->start->accept(this);
+    cout << (s->downto? " downto " : " to ");
+    s->end->accept(this);
+    cout << " do" << endl;
+    s->body->accept(this);
+    cout << "end";
+}
+
+void EVALVisitor::visit(ForStatement* s){
+    int ini  = s->start->accept(this);
+    int fin  = s->end  ->accept(this);
+
+    env.add_level();                 // nivel local del bucle
+    env.add_var(s->id, ini, "int");
+
+    if (!s->downto){
+        while (env.lookup(s->id) <= fin){
+            s->body->accept(this);
+            env.update(s->id, env.lookup(s->id)+1);
+        }
+    }else{
+        while (env.lookup(s->id) >= fin){
+            s->body->accept(this);
+            env.update(s->id, env.lookup(s->id)-1);
+        }
+    }
+    env.remove_level();
+}

@@ -49,8 +49,8 @@ ostream& operator<<(ostream& outs, const Token& tok)
         case Token::DO        : outs << "TOKEN(DO)";        break;
 
         case Token::FOR       : outs << "TOKEN(FOR)";       break;
-        case Token::IN        : outs << "TOKEN(IN)";        break;
-        case Token::RANGE     : outs << "TOKEN(RANGE)";     break;
+        case Token::TO        : outs << "TOKEN(TO)";        break;
+        case Token::DOWNTO    : outs << "TOKEN(DOWNTO";     break;
 
         case Token::WRITELN   : outs << "TOKEN(WRITELN)";   break;
         case Token::RETURN    : outs << "TOKEN(RETURN)";    break;
