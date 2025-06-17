@@ -13,6 +13,7 @@ class AssignStatement; class PrintStatement;
 class IfStatement; class WhileStatement; class ForStatement;
 class VarDec; class VarDecList; class StatementList; class Body;
 class FunDec; class FunDecList; class ReturnStatement; class Program;
+class RecordTypeAccessExp;
 
 /* ───────────────────── Interface base ──────────────────────────────── */
 class Visitor {
@@ -25,6 +26,9 @@ public:
     virtual int  visit(IFExp*)          = 0;
     virtual int  visit(FCallExp*)       = 0;
 
+    virtual int visit(RecordTypeAccessExp*) = 0;
+    virtual int visit(TypeDec*) = 0;
+    virtual int visit(TypeDecList*) = 0;
     /* sentencias */
     virtual void visit(AssignStatement*) = 0;
     virtual void visit(PrintStatement*)  = 0;
@@ -57,6 +61,9 @@ public:
     int  visit(IdentifierExp*)  override;
     int  visit(IFExp*)          override;
     int  visit(FCallExp*)       override;
+    int visit(RecordTypeAccessExp*) override;
+    int visit(TypeDec*)override;
+    int visit(TypeDecList*) override;
 
     /* sentencias + listas + cuerpos */
     void visit(AssignStatement*) override;
@@ -96,6 +103,9 @@ public:
     int  visit(IFExp*)          override;
     int  visit(FCallExp*)       override;
 
+    int visit(RecordTypeAccessExp*) override;
+    int visit(TypeDec*)override;
+    int visit(TypeDecList*) override;
     /* sentencias + bloques */
     void visit(AssignStatement*) override;
     void visit(PrintStatement*)  override;

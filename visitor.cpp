@@ -13,6 +13,7 @@ int BoolExp       ::accept(Visitor* v){ return v->visit(this); }
 int IdentifierExp ::accept(Visitor* v){ return v->visit(this); }
 int IFExp         ::accept(Visitor* v){ return v->visit(this); }
 int FCallExp      ::accept(Visitor* v){ return v->visit(this); }
+int RecordTypeAccessExp ::accept(Visitor *v){return  v->visit(this); }
 /* sentencias */
 int AssignStatement ::accept(Visitor* v){ v->visit(this); return 0; }
 int PrintStatement  ::accept(Visitor* v){ v->visit(this); return 0; }
@@ -25,6 +26,10 @@ int VarDec       ::accept(Visitor* v){ v->visit(this); return 0; }
 int VarDecList   ::accept(Visitor* v){ v->visit(this); return 0; }
 int StatementList::accept(Visitor* v){ v->visit(this); return 0; }
 int Body         ::accept(Visitor* v){ v->visit(this); return 0; }
+int TypeDecList  ::accept(Visitor *v){ v->visit(this); return 0; }
+int TypeDec      ::accept(Visitor *v){ v->visit(this);return 0; }
+
+
 /* funciones */
 int FunDec     ::accept(Visitor* v){ v->visit(this); return 0; }
 int FunDecList ::accept(Visitor* v){ v->visit(this); return 0; }
@@ -52,7 +57,7 @@ int PrintVisitor::visit(FCallExp*){ return 0; }          /* simplificado */
 
 /* sentencias */
 void PrintVisitor::visit(AssignStatement* s){
-    cout << s->id << " := "; s->rhs->accept(this); cout << ";";
+    cout << s->lhs->accept(this) << " := "; s->rhs->accept(this); cout << ";";
 }
 void PrintVisitor::visit(PrintStatement* s){
     cout << "writeln("; s->e->accept(this); cout << ");";
@@ -196,20 +201,33 @@ int EVALVisitor::visit(FCallExp* e){
 }
 
 /* sentencias */
-void EVALVisitor::visit(AssignStatement* s){
+void EVALVisitor::visit(AssignStatement* s) {
     int val = s->rhs->accept(this);
 
-    // ❷ asignación al identificador‑función = valor de retorno
-    if (!currFun.empty() && s->id == currFun){
-        retval  = val;
-        retcall = true;
-        env.update(s->id, val);
+    // Asignar directamente si es un identificador simple
+    if (auto* id = static_cast<IdentifierExp*>(s->lhs)) {
+        if (!currFun.empty() && id->name == currFun) {
+            retval = val;
+            retcall = true;
+        }
+        if (!env.check(id->name)) {
+            cerr << "Var no declarada " << id->name << endl;
+            return;
+        }
+        env.update(id->name, val);
         return;
     }
 
-    if (!env.check(s->id)){ cerr<<"Var no declarada "<<s->id<<endl; return; }
-    env.update(s->id, val);
+    // Si es acceso a campo: d.x1
+    auto* field = static_cast<RecordTypeAccessExp*>(s->lhs);
+    auto* baseId = static_cast<IdentifierExp*>(field->base);
+    if (!env.check(baseId->name, field->field)) {
+        cerr << "Campo no declarado: " << field->field << " en " << baseId->name << endl;
+        return;
+    }
+    env.update(baseId->name, field->field, val);
 }
+
 void EVALVisitor::visit(PrintStatement* s){ cout << s->e->accept(this) << endl; }
 void EVALVisitor::visit(IfStatement* s){
     if (s->condition->accept(this))
@@ -225,6 +243,7 @@ void EVALVisitor::visit(ReturnStatement* s){
     retval  = s->e ? s->e->accept(this) : 0;
     retcall = true;
 }
+
 
 /* bloques */
 void EVALVisitor::visit(VarDec* v){ for (auto& id:v->vars) env.add_var(id,v->type); }
@@ -263,6 +282,18 @@ void PrintVisitor::visit(ForStatement* s){
     cout << "end";
 }
 
+int PrintVisitor::visit(RecordTypeAccessExp *) {
+    return 0;
+}
+
+int PrintVisitor::visit(TypeDec *) {
+    return 0;
+}
+
+int PrintVisitor::visit(TypeDecList *) {
+    return 0;
+}
+
 void EVALVisitor::visit(ForStatement* s){
     int ini  = s->start->accept(this);
     int fin  = s->end  ->accept(this);
@@ -282,4 +313,16 @@ void EVALVisitor::visit(ForStatement* s){
         }
     }
     env.remove_level();
+}
+
+int EVALVisitor::visit(RecordTypeAccessExp *) {
+    return 0;
+}
+
+int EVALVisitor::visit(TypeDec *) {
+    return 0;
+}
+
+int EVALVisitor::visit(TypeDecList *) {
+    return 0;
 }

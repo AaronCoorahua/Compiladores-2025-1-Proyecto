@@ -112,6 +112,27 @@ public:
         }
         return true;
     }
+    // STRUCT
+    bool update(string record, string field, int value) {
+        string fullName = record + "." + field;
+        return update(fullName, value); }
+
+    int lookup(string record, string field) {
+        string fullName = record + "." + field;
+        return lookup(fullName);
+    }
+
+    bool check(string record, string field) {
+        string fullName = record + "." + field;
+        return check(fullName);
+    }
+    // d.y1 : int
+    string lookup_type(string record, string field) {
+        string fullName = record + "." + field;
+        return lookup_type(fullName);
+    }
+
+
 };
 
 #endif

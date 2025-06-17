@@ -27,8 +27,8 @@ IdentifierExp::~IdentifierExp() = default;
 BinaryExp::~BinaryExp() { delete left; delete right; }
 IFExp::~IFExp()         { delete cond; delete left; delete right; }
 
-AssignStatement::AssignStatement(string id, Exp* e): id(move(id)), rhs(e) {}
-AssignStatement::~AssignStatement() { delete rhs; }
+AssignStatement::AssignStatement(Exp* l, Exp* r): lhs(l), rhs(r) {}
+AssignStatement::~AssignStatement() { delete rhs; delete lhs; }
 
 PrintStatement::PrintStatement(Exp* e): e(e) {}
 PrintStatement::~PrintStatement()    { delete e; }
@@ -103,9 +103,6 @@ TypeDec::~TypeDec() {
 
 }
 
-int TypeDec::accept(Visitor *) {
-    return 0;
-}
 
 TypeDecList::TypeDecList(list<TypeDec*> typedecs) {
     this->typedecs=typedecs;
@@ -121,9 +118,6 @@ TypeDecList::~TypeDecList() {
     }
 }
 
-int TypeDecList::accept(Visitor *) {
-    return 0;
-}
 
 TypeDecList::TypeDecList() {
     typedecs = list<TypeDec*>();
@@ -138,9 +132,6 @@ RecordTypeAccessExp::~RecordTypeAccessExp() {
     delete base;
 }
 
-int RecordTypeAccessExp::accept(Visitor *v) {
-    return 0;
-}
 
 Field::Field(string name, string type) {
     this->name = name;

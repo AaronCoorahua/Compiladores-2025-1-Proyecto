@@ -91,9 +91,9 @@ public:
 
 class AssignStatement : public Stm {
 public:
-    string id;
+    Exp* lhs;
     Exp* rhs;
-    AssignStatement(string, Exp*);
+    AssignStatement(Exp* l, Exp* r);
     ~AssignStatement();
     int accept(Visitor*) override;
 };
@@ -173,7 +173,7 @@ public:
     vector<Field> atributs;
     TypeDec(string name, vector<Field> atributs);
     ~TypeDec();
-    int accept(Visitor*);
+    int accept(Visitor* v);
 };
 class TypeDecList {
 public:
@@ -182,7 +182,7 @@ public:
     TypeDecList();
     void add(TypeDec* val);
     ~TypeDecList();
-    int accept(Visitor*);
+    int accept(Visitor* v);
 };
 class VarDec {
 public:

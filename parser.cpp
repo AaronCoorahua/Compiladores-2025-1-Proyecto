@@ -36,7 +36,7 @@ Parser::Parser(Scanner* sc):scanner(sc){
 
 /*──────────────── vars ────────────────*/
 VarDec* Parser::parseVarDec(){
-    if (!match(Token::VAR)) return nullptr;
+    if (!check(Token::ID)) return nullptr;
 
     list<string> ids;
     match(Token::ID);                 // ❶ primer id
@@ -48,12 +48,17 @@ VarDec* Parser::parseVarDec(){
     match(Token::COLON);              // ❷ ‘:’
     match(Token::ID);                 // ❸ tipo
     string type = previous->text;
-    match(Token::PC);                 // ‘;’
-
+    match(Token::PC);
+    // ‘;’
+    cout<<"[DEBUG] VarDec: type="<<type<<" ids_0="<<*ids.begin();
     return new VarDec(type, ids);
 }
 VarDecList* Parser::parseVarDecList(){
     auto* v = new VarDecList();
+    if (!match(Token::VAR)){
+        cout<<"se espara un Token::VAR "<<endl;
+        exit(1);
+    }
     while (VarDec* d = parseVarDec()) v->add(d);
     return v;
 }
@@ -70,7 +75,7 @@ StatementList* Parser::parseStatementList(){
 }
 Body* Parser::parseBody(){
     match(Token::BEGIN_KW);
-    auto* v = parseVarDecList();
+    auto* v = check(Token::VAR) ? parseVarDecList() : new VarDecList();
     auto* s = parseStatementList();
     match(Token::END_KW);
     return new Body(v,s);
@@ -150,11 +155,19 @@ Stm* Parser::parseStatement(){
 
     /* id := expresión */
     if (match(Token::ID)){
-        string id = previous->text;
+        Exp* lhs = new IdentifierExp(previous->text);
+
+        // Soporte para acceso tipo d.x
+        while (match(Token::DOT)) {
+            match(Token::ID);
+            lhs = new RecordTypeAccessExp(lhs, previous->text);
+        }
+
         match(Token::ASSIGN);
         Exp* rhs = parseCExp();
-        return new AssignStatement(id,rhs);
+        return new AssignStatement(lhs, rhs);
     }
+
 
     /* writeln( exp ) */
     if (match(Token::WRITELN)){
@@ -211,6 +224,7 @@ Stm* Parser::parseStatement(){
 
 /*──────────────── expresiones ────────────*/
 Exp* Parser::parseCExp(){
+    cerr << "[DEBUG] En parseCExp antes de parseFactor" << endl;
     Exp* left = parseExpression();
     if ( match(Token::LT) || match(Token::LE) ||
          match(Token::GT) || match(Token::GE) ||
@@ -247,6 +261,7 @@ Exp* Parser::parseTerm(){
     return left;
 }
 Exp* Parser::parseFactor() {
+    cout << "[DEBUG] parseFactor current: " << *current << endl;
     if (match(Token::TRUE))  return new BoolExp(1);
     if (match(Token::FALSE)) return new BoolExp(0);
     if (match(Token::NUM))   return new NumberExp(stoi(previous->text));
@@ -268,9 +283,11 @@ Exp* Parser::parseFactor() {
             return call;
         }
 
-        if (match(Token::DOT)) {//a.b.c
+        if (match(Token::DOT)) {//a.b -> sacara el valor  o a.b := asingar
             match(Token::ID);
             string field = previous->text;
+
+
             base = new RecordTypeAccessExp(base, field);  // ⚠️ Usa tu clase nueva
         }
 
