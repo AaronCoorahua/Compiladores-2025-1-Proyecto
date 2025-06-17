@@ -22,6 +22,10 @@ private:
     VarDec*        parseVarDec();
     VarDecList*    parseVarDecList();
 
+    TypeDec*       parseTypeDec();
+    TypeDecList*   parseTypeDecList();
+
+
     FunDec*        parseFunDec();
     FunDecList*    parseFunDecList();
 
@@ -36,6 +40,8 @@ private:
     Exp*           parseTerm();
     Exp*           parseFactor();
 
+    Field          parseField();
+    vector<Field>  parseFieldList();
 public:
     explicit Parser(Scanner*);
     Program* parseProgram();

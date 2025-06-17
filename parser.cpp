@@ -83,17 +83,18 @@ Program* Parser::parseProgram(){
     if (match(Token::PROGRAM)){     // encabezado opcional
         match(Token::ID);  match(Token::PC);
     }
-
+    p->typeDecList= parseTypeDecList();
     p->vardecs  = parseVarDecList();
     p->fundecs  = parseFunDecList();
 
+    if (!p->fundecs) p->fundecs = new FunDecList();  // si no hay funciones
     match(Token::BEGIN_KW);
     p->mainBody = parseStatementList();
     match(Token::END_KW);
-    match(Token::DOT);              // punto final
+    match(Token::DOT);
 
     if (!isAtEnd()){
-        cerr << "Texto extra después del '.' final\n"; exit(1);
+        cerr << "Texto extra después del '.' final: "<<current<<"\n"; exit(1);
     }
     return p;
 }
@@ -245,16 +246,20 @@ Exp* Parser::parseTerm(){
     }
     return left;
 }
-Exp* Parser::parseFactor(){
+Exp* Parser::parseFactor() {
     if (match(Token::TRUE))  return new BoolExp(1);
     if (match(Token::FALSE)) return new BoolExp(0);
     if (match(Token::NUM))   return new NumberExp(stoi(previous->text));
 
-    if (match(Token::ID)){
+    if (match(Token::ID)) {
         string name = previous->text;
-        if (match(Token::PI)){                      // llamada
-            auto* call = new FCallExp(); call->nombre = name;
-            if (!check(Token::PD)){
+        Exp* base = new IdentifierExp(name);
+
+
+        if (match(Token::PI)) {
+            auto* call = new FCallExp();
+            call->nombre = name;
+            if (!check(Token::PD)) {
                 call->argumentos.push_back(parseCExp());
                 while (match(Token::COMA))
                     call->argumentos.push_back(parseCExp());
@@ -262,17 +267,25 @@ Exp* Parser::parseFactor(){
             match(Token::PD);
             return call;
         }
-        return new IdentifierExp(name);             // variable
+
+        if (match(Token::DOT)) {//a.b.c
+            match(Token::ID);
+            string field = previous->text;
+            base = new RecordTypeAccessExp(base, field);  // ⚠️ Usa tu clase nueva
+        }
+
+        return base;
     }
 
-    if (match(Token::PI)){                          // ( exp )
-        Exp* e = parseCExp(); match(Token::PD); return e;
+    if (match(Token::PI)) {
+        Exp* e = parseCExp();
+        match(Token::PD);
+        return e;
     }
 
-    cerr << "Factor inválido: " << *current << endl;
+    cerr << "Factor inválido: " << *current <<"PREV:"<<previous->text<< endl;
     exit(1);
 }
-
 
 Body* Parser::parseBlockOrStmt() {
     if (check(Token::BEGIN_KW))          // begin … end
@@ -283,4 +296,76 @@ Body* Parser::parseBlockOrStmt() {
     auto* sl = new StatementList();
     sl->add( parseStatement() );         // solo UNA sentencia
     return new Body(v, sl);
+}
+
+TypeDec* Parser::parseTypeDec() {
+    if (!match(Token::ID)) {
+        cerr << "Se espera un ID (nombre del tipo)\n"; exit(1);
+    }
+    string name = previous->text;
+
+    if (!match(Token::ASSIGN)) {
+        cerr << "Se espera '=' después del nombre del tipo\n"; exit(1);
+    }
+
+    if (!match(Token::RECORD)) {
+        cerr << "Se espera 'record'\n"; exit(1);
+    }
+
+    vector<Field> fields = parseFieldList();
+
+    if (!match(Token::END_KW)) {
+        cerr << "Se espera 'end' para cerrar el record\n"; exit(1);
+    }
+
+    if (!match(Token::PC)) {
+        cerr << "Se espera ';' después de 'end'\n"; exit(1);
+    }
+
+    return new TypeDec(name, fields);
+}
+
+
+TypeDecList* Parser::parseTypeDecList() {
+    auto* l = new TypeDecList();
+    if (!match(Token::TYPE)) return l;
+
+    // Procesa múltiples definiciones
+    while (check(Token::ID)) {
+        TypeDec* t = parseTypeDec();
+        if (t) l->add(t);
+    }
+
+    return l;
+}
+
+
+Field Parser::parseField() {
+    if (!match(Token::ID)) {
+        cerr << "Se espera ID en campo de record\n"; exit(1);
+    }
+    string fieldName = previous->text;
+
+    if (!match(Token::COLON)) {
+        cerr << "Se espera ':' después del nombre del campo\n"; exit(1);
+    }
+
+    if (!match(Token::ID)) {
+        cerr << "Se espera tipo del campo\n"; exit(1);
+    }
+    string fieldType = previous->text;
+    cout<<"field :"<< fieldName << " : " << fieldType << endl;
+    return Field(fieldName, fieldType);
+}
+vector<Field> Parser::parseFieldList() {
+    vector<Field> fields;
+
+    fields.push_back(parseField());
+
+    while (match(Token::PC)) {
+        if (check(Token::END_KW)) break;  // ; opcional al final
+        fields.push_back(parseField());
+    }
+
+    return fields;
 }

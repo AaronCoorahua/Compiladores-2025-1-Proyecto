@@ -27,7 +27,7 @@ IdentifierExp::~IdentifierExp() = default;
 BinaryExp::~BinaryExp() { delete left; delete right; }
 IFExp::~IFExp()         { delete cond; delete left; delete right; }
 
-AssignStatement::AssignStatement(string id, Exp* e): id(std::move(id)), rhs(e) {}
+AssignStatement::AssignStatement(string id, Exp* e): id(move(id)), rhs(e) {}
 AssignStatement::~AssignStatement() { delete rhs; }
 
 PrintStatement::PrintStatement(Exp* e): e(e) {}
@@ -40,8 +40,8 @@ IfStatement::~IfStatement() { delete condition; delete then; delete els; }
 WhileStatement::WhileStatement(Exp* c, Body* b): condition(c), b(b) {}
 WhileStatement::~WhileStatement() { delete condition; delete b; }
 
-ForStatement::ForStatement(std::string id, Exp* s, Exp* e, bool d, Body* b)
-    : id(std::move(id)), start(s), end(e), downto(d), body(b) {}
+ForStatement::ForStatement(string id, Exp* s, Exp* e, bool d, Body* b)
+    : id(move(id)), start(s), end(e), downto(d), body(b) {}
 ForStatement::~ForStatement() {
     delete start;
     delete end;
@@ -50,7 +50,7 @@ ForStatement::~ForStatement() {
 
 /* ---------------------------- Var-Decs ------------------------------- */
 VarDec::VarDec(string t, list<string> v)
-        : type(std::move(t)), vars(std::move(v)) {}
+        : type(move(t)), vars(move(v)) {}
 VarDec::~VarDec() = default;
 
 VarDecList::VarDecList() = default;
@@ -92,4 +92,57 @@ string Exp::binopToChar(BinaryOp op)
         case GE_OP   : return ">=";
         default      : return "?";
     }
+}
+
+TypeDec::TypeDec(string name, vector<Field> atributs) {
+    this->name = name;
+    this->atributs = atributs;
+}
+
+TypeDec::~TypeDec() {
+
+}
+
+int TypeDec::accept(Visitor *) {
+    return 0;
+}
+
+TypeDecList::TypeDecList(list<TypeDec*> typedecs) {
+    this->typedecs=typedecs;
+}
+
+void TypeDecList::add(TypeDec* val) {
+    this->typedecs.push_back(val);
+}
+
+TypeDecList::~TypeDecList() {
+    for (auto td : typedecs) {
+        delete td;
+    }
+}
+
+int TypeDecList::accept(Visitor *) {
+    return 0;
+}
+
+TypeDecList::TypeDecList() {
+    typedecs = list<TypeDec*>();
+}
+
+RecordTypeAccessExp::RecordTypeAccessExp(Exp *base, const string &field) {
+    this->base = base;
+    this->field = field;
+}
+
+RecordTypeAccessExp::~RecordTypeAccessExp() {
+    delete base;
+}
+
+int RecordTypeAccessExp::accept(Visitor *v) {
+    return 0;
+}
+
+Field::Field(string name, string type) {
+    this->name = name;
+    this->type = type;
 }

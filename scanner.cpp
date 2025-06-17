@@ -51,6 +51,8 @@ Token* Scanner::nextToken()
         KW("true"    , Token::TRUE)
         KW("false"   , Token::FALSE)
         KW("return"  , Token::RETURN)
+        KW("type"  , Token::TYPE)
+        KW("record"  , Token::RECORD)
 #undef  KW
         /* no es palabra reservada ⇒ identificador */
         return new Token(Token::ID, w, 0, w.size());
@@ -85,9 +87,10 @@ Token* Scanner::nextToken()
 
             /* == como operador de igualdad (opcional) */
             case '=':
+
                 if (current+1 < (int)input.size() && input[current+1]=='=')
                 { current += 2; return new Token(Token::EQ , "==", 0, 2); }
-                current++; return new Token(Token::ERR, c);
+                else { current++; return new Token(Token::ASSIGN, '='); };
 
             /*  ':' o ':='  */
             case ':':

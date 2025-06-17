@@ -24,6 +24,7 @@ public:
         WRITELN,
         RETURN,
         TRUE, FALSE,
+        TYPE,RECORD,
 
         /* control */
         ERR, END

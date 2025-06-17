@@ -55,6 +55,10 @@ ostream& operator<<(ostream& outs, const Token& tok)
         case Token::WRITELN   : outs << "TOKEN(WRITELN)";   break;
         case Token::RETURN    : outs << "TOKEN(RETURN)";    break;
 
+        case Token::TYPE      : outs << "TOKEN(TYPE)";       break;
+        case Token::RECORD      : outs << "TOKEN(RECORD)";       break;
+
+
         case Token::TRUE      : outs << "TOKEN(TRUE)";      break;
         case Token::FALSE     : outs << "TOKEN(FALSE)";     break;
 

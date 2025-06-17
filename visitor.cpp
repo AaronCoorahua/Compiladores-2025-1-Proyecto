@@ -115,6 +115,7 @@ void PrintVisitor::visit(FunDec* f){
     cout << endl << "end;";
 }
 void PrintVisitor::visit(FunDecList* l){
+
     for (auto f:l->Fundecs){ f->accept(this); cout << endl << endl; }
 }
 

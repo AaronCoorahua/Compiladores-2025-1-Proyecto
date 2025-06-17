@@ -3,6 +3,9 @@
 
 #include <string>
 #include <list>
+#include <vector>
+
+using namespace std;
 
 /* ======================== Adelantos de clases ========================= */
 class Visitor;      // interfaz de visitantes
@@ -19,7 +22,7 @@ class Exp {
 public:
     virtual int  accept(Visitor*) = 0;
     virtual ~Exp() = default;
-    static std::string binopToChar(BinaryOp);
+    static string binopToChar(BinaryOp);
 };
 
 /* --------- ifexp(cond, a, b)  (compatibilidad) ---------------------- */
@@ -35,7 +38,7 @@ public:
 class BinaryExp : public Exp {
 public:
     Exp *left, *right;
-    std::string type;
+    string type;
     BinaryOp op;
     BinaryExp(Exp*, Exp*, BinaryOp);
     ~BinaryExp();
@@ -61,8 +64,8 @@ public:
 
 class IdentifierExp : public Exp {
 public:
-    std::string name;
-    explicit IdentifierExp(const std::string&);
+    string name;
+    explicit IdentifierExp(const string&);
     ~IdentifierExp();
     int accept(Visitor*) override;
 };
@@ -70,8 +73,8 @@ public:
 /* --------- llamada a función ---------------------------------------- */
 class FCallExp : public Exp {
 public:
-    std::string     nombre;
-    std::list<Exp*> argumentos;
+    string     nombre;
+    list<Exp*> argumentos;
     FCallExp() = default;
     ~FCallExp() override = default;     /* nada que destruir: se libera visitante */
     int accept(Visitor*) override;
@@ -88,9 +91,9 @@ public:
 
 class AssignStatement : public Stm {
 public:
-    std::string id;
+    string id;
     Exp* rhs;
-    AssignStatement(std::string, Exp*);
+    AssignStatement(string, Exp*);
     ~AssignStatement();
     int accept(Visitor*) override;
 };
@@ -115,12 +118,12 @@ public:
 
 class ForStatement : public Stm {
 public:
-    std::string id;
+    string id;
     Exp *start, *end;
     bool downto;
     Body *body;
 
-    ForStatement(std::string id, Exp* s, Exp* e, bool d, Body* b);
+    ForStatement(string id, Exp* s, Exp* e, bool d, Body* b);
     ~ForStatement() override;
 
     int accept(Visitor* v) override;
@@ -147,18 +150,54 @@ public:
 /* ===================================================================== */
 /*                    DECLARACIONES, LISTAS, BLOQUES                     */
 /* ===================================================================== */
+class RecordTypeAccessExp : public Exp {
+public:
+    Exp* base;       // Ej: d en d.x
+    string field;    // Ej: x en d.x
+
+    RecordTypeAccessExp(Exp* base, const string& field);
+    ~RecordTypeAccessExp();
+
+    int accept(Visitor* v) override;
+};
+class Field {
+public:
+    string name;
+    string type;
+    Field(string name, string type);
+};
+
+class TypeDec {
+public:
+    string name; //name class
+    vector<Field> atributs;
+    TypeDec(string name, vector<Field> atributs);
+    ~TypeDec();
+    int accept(Visitor*);
+};
+class TypeDecList {
+public:
+    list<TypeDec*> typedecs;
+    TypeDecList(list<TypeDec*> typedecs);
+    TypeDecList();
+    void add(TypeDec* val);
+    ~TypeDecList();
+    int accept(Visitor*);
+};
 class VarDec {
 public:
-    std::string           type;
-    std::list<std::string> vars;
-    VarDec(std::string, std::list<std::string>);
+    string           type;
+    list<string> vars;
+    VarDec(string, list<string>);
     ~VarDec();
     int accept(Visitor*);
 };
 
+
+
 class VarDecList {
 public:
-    std::list<VarDec*> vardecs;
+    list<VarDec*> vardecs;
     VarDecList();
     void add(VarDec*);
     ~VarDecList();
@@ -167,7 +206,7 @@ public:
 
 class StatementList {
 public:
-    std::list<Stm*> stms;
+    list<Stm*> stms;
     StatementList();
     void add(Stm*);
     ~StatementList();
@@ -188,10 +227,10 @@ public:
 /* ===================================================================== */
 class FunDec {
 public:
-    std::string nombre;                 /* id de la función        */
-    std::string tipo;                   /* tipo de retorno         */
-    std::list<std::string> parametros;  /* ids de parámetros       */
-    std::list<std::string> tipos;       /* tipos de parámetros     */
+    string nombre;                 /* id de la función        */
+    string tipo;                   /* tipo de retorno         */
+    list<string> parametros;       /* ids de parámetros       */
+    list<string> tipos;            /* tipos de parámetros     */
     Body* cuerpo {nullptr};
 
     FunDec() = default;
@@ -201,7 +240,7 @@ public:
 
 class FunDecList {
 public:
-    std::list<FunDec*> Fundecs;
+    list<FunDec*> Fundecs;
     void add(FunDec* f){ Fundecs.push_back(f); }
     ~FunDecList() = default;            /* se destruye en visitor  */
     int accept(Visitor*);
@@ -212,6 +251,7 @@ public:
 /* ===================================================================== */
 class Program {
 public:
+    TypeDecList*   typeDecList{nullptr}; /* declaraciones de Struct */
     VarDecList*    vardecs  {nullptr};   /* variables globales */
     FunDecList*    fundecs  {nullptr};   /* funciones          */
     StatementList* mainBody {nullptr};   /* bloque begin … end */
