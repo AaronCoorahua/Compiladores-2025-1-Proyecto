@@ -13,6 +13,11 @@ class AssignStatement; class PrintStatement;
 class IfStatement; class WhileStatement; class ForStatement;
 class VarDec; class VarDecList; class StatementList; class Body;
 class FunDec; class FunDecList; class ReturnStatement; class Program;
+class TypeDecList;
+class TypeDec;
+class RecordTIdentifierExp;
+class RecordTAssignStatement;
+class RecordVarDec;
 
 /* ───────────────────── Interface base ──────────────────────────────── */
 class Visitor {
@@ -24,6 +29,8 @@ public:
     virtual int  visit(IdentifierExp*)  = 0;
     virtual int  visit(IFExp*)          = 0;
     virtual int  visit(FCallExp*)       = 0;
+    virtual int  visit(RecordTIdentifierExp*) =0;
+
 
     /* sentencias */
     virtual void visit(AssignStatement*) = 0;
@@ -32,12 +39,16 @@ public:
     virtual void visit(ForStatement*)    = 0;
     virtual void visit(WhileStatement*)  = 0;
     virtual void visit(ReturnStatement*) = 0;
+    virtual void visit(RecordTAssignStatement*)=0;
 
     /* bloques y listas */
     virtual void visit(VarDec*)          = 0;
     virtual void visit(VarDecList*)      = 0;
     virtual void visit(StatementList*)   = 0;
     virtual void visit(Body*)            = 0;
+    virtual void visit(TypeDecList*)      = 0;
+    virtual void visit(TypeDec*)          = 0;
+    virtual void visit(RecordVarDec*) = 0;
 
     /* funciones y programa */
     virtual void visit(FunDec*)          = 0;
@@ -57,6 +68,7 @@ public:
     int  visit(IdentifierExp*)  override;
     int  visit(IFExp*)          override;
     int  visit(FCallExp*)       override;
+    int  visit(RecordTIdentifierExp*) override;
 
     /* sentencias + listas + cuerpos */
     void visit(AssignStatement*) override;
@@ -65,10 +77,15 @@ public:
     void visit(ForStatement*)  override;
     void visit(WhileStatement*)  override;
     void visit(ReturnStatement*) override;
+    void visit(RecordTAssignStatement*) override;
+
     void visit(VarDec*)          override;
     void visit(VarDecList*)      override;
     void visit(StatementList*)   override;
     void visit(Body*)            override;
+    void visit(TypeDecList*)      override;
+    void visit(TypeDec*)          override;
+    void visit(RecordVarDec*)          override;
 
     /* funciones y programa */
     void visit(FunDec*)          override;
@@ -95,6 +112,8 @@ public:
     int  visit(IdentifierExp*)  override;
     int  visit(IFExp*)          override;
     int  visit(FCallExp*)       override;
+    int  visit(RecordTIdentifierExp*) override;
+
 
     /* sentencias + bloques */
     void visit(AssignStatement*) override;
@@ -103,11 +122,15 @@ public:
     void visit(ForStatement*)  override;
     void visit(WhileStatement*)  override;
     void visit(ReturnStatement*) override;
+    void visit(RecordTAssignStatement*) override;
+
     void visit(VarDec*)          override;
     void visit(VarDecList*)      override;
     void visit(StatementList*)   override;
     void visit(Body*)            override;
-
+    void visit(TypeDecList*)      override;
+    void visit(TypeDec*)          override;
+    void visit(RecordVarDec*)          override;
     /* funciones */
     void visit(FunDec*)          override;
     void visit(FunDecList*)      override;

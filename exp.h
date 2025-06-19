@@ -150,28 +150,40 @@ public:
 /* ===================================================================== */
 /*                    DECLARACIONES, LISTAS, BLOQUES                     */
 /* ===================================================================== */
-class RecordTypeAccessExp : public Exp {
+class RecordTAssignStatement : public Stm  {
 public:
-    Exp* base;       // Ej: d en d.x
+    string base;       // Ej: d en d.x
     string field;    // Ej: x en d.x
 
-    RecordTypeAccessExp(Exp* base, const string& field);
-    ~RecordTypeAccessExp();
+    Exp*   val;
+    RecordTAssignStatement(const string& base, const string& field,Exp* val);
+    ~RecordTAssignStatement() ;
 
     int accept(Visitor* v) override;
 };
-class Field {
+class RecordTIdentifierExp : public Exp {
 public:
-    string name;
-    string type;
-    Field(string name, string type);
+    string base;
+    string field;
+
+    RecordTIdentifierExp(const string& base, const string& field );
+    ~RecordTIdentifierExp() override;
+    int accept(Visitor*) override;
 };
 
+class RecordVarDec {
+public:
+    string  atribute;
+    string      type;
+    RecordVarDec(string, string);
+    ~RecordVarDec();
+    int accept(Visitor*);
+};
 class TypeDec {
 public:
     string name; //name class
-    vector<Field> atributs;
-    TypeDec(string name, vector<Field> atributs);
+    vector<RecordVarDec*> atributs;
+    TypeDec(string name, vector<RecordVarDec*> atributs);
     ~TypeDec();
     int accept(Visitor*);
 };
@@ -182,11 +194,12 @@ public:
     TypeDecList();
     void add(TypeDec* val);
     ~TypeDecList();
-    int accept(Visitor*);
+    int accept(Visitor*) ;
 };
+
 class VarDec {
 public:
-    string           type;
+    string      type;
     list<string> vars;
     VarDec(string, list<string>);
     ~VarDec();
@@ -254,7 +267,7 @@ public:
     TypeDecList*   typeDecList{nullptr}; /* declaraciones de Struct */
     VarDecList*    vardecs  {nullptr};   /* variables globales */
     FunDecList*    fundecs  {nullptr};   /* funciones          */
-    StatementList* mainBody {nullptr};   /* bloque begin … end */
+    Body*          mainBody {nullptr};   /* bloque begin … end */
 };
 
 #endif  /* EXP_H */

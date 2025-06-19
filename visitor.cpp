@@ -13,6 +13,8 @@ int BoolExp       ::accept(Visitor* v){ return v->visit(this); }
 int IdentifierExp ::accept(Visitor* v){ return v->visit(this); }
 int IFExp         ::accept(Visitor* v){ return v->visit(this); }
 int FCallExp      ::accept(Visitor* v){ return v->visit(this); }
+int RecordTIdentifierExp::accept(Visitor * v) {return v->visit(this);}
+
 /* sentencias */
 int AssignStatement ::accept(Visitor* v){ v->visit(this); return 0; }
 int PrintStatement  ::accept(Visitor* v){ v->visit(this); return 0; }
@@ -20,11 +22,15 @@ int IfStatement     ::accept(Visitor* v){ v->visit(this); return 0; }
 int ForStatement    ::accept(Visitor* v){ v->visit(this); return 0; }
 int WhileStatement  ::accept(Visitor* v){ v->visit(this); return 0; }
 int ReturnStatement ::accept(Visitor* v){ v->visit(this); return 0; }
+int RecordTAssignStatement::accept(Visitor *v) { v->visit(this); return 0;}
 /* listas / cuerpos */
 int VarDec       ::accept(Visitor* v){ v->visit(this); return 0; }
 int VarDecList   ::accept(Visitor* v){ v->visit(this); return 0; }
 int StatementList::accept(Visitor* v){ v->visit(this); return 0; }
 int Body         ::accept(Visitor* v){ v->visit(this); return 0; }
+int TypeDecList  ::accept(Visitor *v){ v->visit(this); return 0; }
+int TypeDec      ::accept(Visitor *v){ v->visit(this); return 0; }
+int RecordVarDec::accept(Visitor *v){ v->visit(this); return 0; }
 /* funciones */
 int FunDec     ::accept(Visitor* v){ v->visit(this); return 0; }
 int FunDecList ::accept(Visitor* v){ v->visit(this); return 0; }
@@ -123,6 +129,8 @@ void PrintVisitor::visit(FunDecList* l){
 void PrintVisitor::visit(Program* p){ imprimir(p); }
 void PrintVisitor::imprimir(Program* p){
     cout << "program out;" << endl << endl;
+    if (p->typeDecList) {p->typeDecList->accept(this);
+        cout << endl;}
     p->vardecs->accept(this);
     if (!p->vardecs->vardecs.empty()) cout << endl;
     p->fundecs->accept(this);
@@ -263,6 +271,39 @@ void PrintVisitor::visit(ForStatement* s){
     cout << "end";
 }
 
+int PrintVisitor::visit(RecordTIdentifierExp* re) {
+    cout << re->base << "." << re->field;
+    return 0;
+}
+
+
+void PrintVisitor::visit(RecordTAssignStatement* rs) {
+    cout << rs->base << "." << rs->field << " := ";
+    rs->val->accept(this);
+    cout << ";";
+}
+
+
+void PrintVisitor::visit(TypeDecList* tdl) {
+    cout << "type"<<endl;
+    for (auto i:tdl->typedecs){
+        i->accept(this);
+    }
+}
+
+void PrintVisitor::visit(TypeDec* td) {
+    cout << td->name << " = record" << endl;
+    for (auto i : td->atributs) {
+        i->accept(this);
+    }
+    cout << "end;" << endl << endl;
+}
+
+void PrintVisitor::visit(RecordVarDec *rv) {
+    cout<<"  "<<rv->atribute << " : " << rv->type << ";" << endl;
+}
+
+
 void EVALVisitor::visit(ForStatement* s){
     int ini  = s->start->accept(this);
     int fin  = s->end  ->accept(this);
@@ -282,4 +323,24 @@ void EVALVisitor::visit(ForStatement* s){
         }
     }
     env.remove_level();
+}
+
+int EVALVisitor::visit(RecordTIdentifierExp*) {
+    return 0;
+}
+
+void EVALVisitor::visit(RecordTAssignStatement*) {
+
+}
+
+void EVALVisitor::visit(TypeDecList*) {
+
+}
+
+void EVALVisitor::visit(TypeDec*) {
+
+}
+
+void EVALVisitor::visit(RecordVarDec *) {
+
 }

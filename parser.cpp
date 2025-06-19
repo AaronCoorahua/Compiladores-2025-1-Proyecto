@@ -36,7 +36,6 @@ Parser::Parser(Scanner* sc):scanner(sc){
 
 /*──────────────── vars ────────────────*/
 VarDec* Parser::parseVarDec(){
-    if (!match(Token::VAR)) return nullptr;
 
     list<string> ids;
     match(Token::ID);                 // ❶ primer id
@@ -54,7 +53,11 @@ VarDec* Parser::parseVarDec(){
 }
 VarDecList* Parser::parseVarDecList(){
     auto* v = new VarDecList();
-    while (VarDec* d = parseVarDec()) v->add(d);
+    if (!match(Token::VAR)) return v;
+    while (check(Token::ID)) {         // ← solo entramos si hay un ID (inicio de var)
+        VarDec* d = parseVarDec();
+        if (d) v->add(d);
+    }
     return v;
 }
 
@@ -88,9 +91,7 @@ Program* Parser::parseProgram(){
     p->fundecs  = parseFunDecList();
 
     if (!p->fundecs) p->fundecs = new FunDecList();  // si no hay funciones
-    match(Token::BEGIN_KW);
-    p->mainBody = parseStatementList();
-    match(Token::END_KW);
+    p->mainBody = parseBody();
     match(Token::DOT);
 
     if (!isAtEnd()){
@@ -151,6 +152,19 @@ Stm* Parser::parseStatement(){
     /* id := expresión */
     if (match(Token::ID)){
         string id = previous->text;
+
+        if (check(Token::DOT)){
+            match(Token::DOT);
+            match(Token::ID);
+            string id2 = previous->text;
+            if (!match(Token::ASSIGN)){
+                cerr << "Se espera ':=' después de '" << id << "." << id2 << "'\n";
+                exit(1);
+            }
+            Exp* val = parseCExp();
+            return new RecordTAssignStatement(id, id2, val);
+        }
+
         match(Token::ASSIGN);
         Exp* rhs = parseCExp();
         return new AssignStatement(id,rhs);
@@ -271,7 +285,7 @@ Exp* Parser::parseFactor() {
         if (match(Token::DOT)) {//a.b.c
             match(Token::ID);
             string field = previous->text;
-            base = new RecordTypeAccessExp(base, field);  // ⚠️ Usa tu clase nueva
+            base = new RecordTIdentifierExp(name, field);  // ⚠️ Usa tu clase nueva
         }
 
         return base;
@@ -283,7 +297,7 @@ Exp* Parser::parseFactor() {
         return e;
     }
 
-    cerr << "Factor inválido: " << *current <<"PREV:"<<previous->text<< endl;
+    cerr << "Factor inválido: " << *current <<" PREV: "<<previous->text<< endl;
     exit(1);
 }
 
@@ -312,7 +326,7 @@ TypeDec* Parser::parseTypeDec() {
         cerr << "Se espera 'record'\n"; exit(1);
     }
 
-    vector<Field> fields = parseFieldList();
+    vector<RecordVarDec*> fields = parseFieldList();
 
     if (!match(Token::END_KW)) {
         cerr << "Se espera 'end' para cerrar el record\n"; exit(1);
@@ -340,7 +354,7 @@ TypeDecList* Parser::parseTypeDecList() {
 }
 
 
-Field Parser::parseField() {
+RecordVarDec* Parser::parseField() {
     if (!match(Token::ID)) {
         cerr << "Se espera ID en campo de record\n"; exit(1);
     }
@@ -355,10 +369,10 @@ Field Parser::parseField() {
     }
     string fieldType = previous->text;
     cout<<"field :"<< fieldName << " : " << fieldType << endl;
-    return Field(fieldName, fieldType);
+    return new RecordVarDec(fieldName, fieldType);
 }
-vector<Field> Parser::parseFieldList() {
-    vector<Field> fields;
+vector<RecordVarDec*> Parser::parseFieldList() {
+    vector<RecordVarDec*> fields;
 
     fields.push_back(parseField());
 
