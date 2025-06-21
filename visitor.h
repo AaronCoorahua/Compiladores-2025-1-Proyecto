@@ -32,6 +32,7 @@ public:
     virtual int visit(TypeDec*) = 0;
     virtual int visit(TypeDecList*) = 0;
     /* sentencias */
+
     virtual void visit(AssignStatement*) = 0;
     virtual void visit(PrintStatement*)  = 0;
     virtual void visit(IfStatement*)     = 0;

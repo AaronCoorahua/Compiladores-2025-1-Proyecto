@@ -28,13 +28,6 @@
   <component name="ChangeListManager">
     <list default="true" id="96fea426-e8c9-47ca-add6-5b2ae9ac79fd" name="Changes" comment="float">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/Testing/Temporary/LastTest.log" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/Testing/Temporary/LastTest.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/input1.txt" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/input1.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/input2.txt" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/input2.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/input3.txt" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/input3.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/input4.txt" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/input4.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/input5.txt" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/input5.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/visitor.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/visitor.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -107,7 +100,8 @@
       <updated>1750522817706</updated>
       <workItem from="1750522819252" duration="5805000" />
       <workItem from="1750528811118" duration="2986000" />
-      <workItem from="1750539362267" duration="2183000" />
+      <workItem from="1750539362267" duration="2952000" />
+      <workItem from="1750546035417" duration="3000" />
     </task>
     <task id="LOCAL-00001" summary="float">
       <option name="closed" value="true" />
@@ -125,7 +119,15 @@
       <option name="project" value="LOCAL" />
       <updated>1750540868571</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="float">
+      <option name="closed" value="true" />
+      <created>1750541691922</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1750541691922</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

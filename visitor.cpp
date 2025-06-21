@@ -80,6 +80,7 @@ void PrintVisitor::visit(AssignStatement* s) {
     }
 }
 
+
 void PrintVisitor::visit(PrintStatement* s){
     cout << "writeln("; s->e->accept(this); cout << ");";
 }

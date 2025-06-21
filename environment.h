@@ -103,6 +103,7 @@ public:
         return type_levels[idx][x];
     }
 
+
     // Verificar el tipo de una variable antes de asignar un valor
     bool typecheck(string var, string expected_type) {
         string actual_type = lookup_type(var);

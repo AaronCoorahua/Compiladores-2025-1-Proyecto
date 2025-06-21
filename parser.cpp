@@ -14,10 +14,12 @@ bool Parser::isAtEnd()           { return current->type==Token::END; }
 
 bool Parser::advance(){
     if (isAtEnd()) return false;
+
     Token* tmp = current;
     current    = scanner->nextToken();
     if (previous) delete previous;
     previous = tmp;
+
 
     if (check(Token::ERR)){
         cerr << "Scanner error: " << current->text << endl; exit(1);
