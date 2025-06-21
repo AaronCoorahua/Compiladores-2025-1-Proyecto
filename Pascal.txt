@@ -9,6 +9,7 @@ ParamList      ::= Param (',' Param)*
 Param          ::= id ':' Type
 
 VarList        ::= id (',' id)*
+
 Type           ::= 'integer' | 'boolean'|'real'
 
 StmtList       ::= (Stmt ';')*

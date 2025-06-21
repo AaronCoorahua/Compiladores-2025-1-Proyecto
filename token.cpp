@@ -14,6 +14,7 @@ ostream& operator<<(ostream& outs, const Token& tok)
 {
     switch (tok.type)
     {
+
         case Token::PLUS      : outs << "TOKEN(PLUS)";      break;
         case Token::MINUS     : outs << "TOKEN(MINUS)";     break;
         case Token::MUL       : outs << "TOKEN(MUL)";       break;

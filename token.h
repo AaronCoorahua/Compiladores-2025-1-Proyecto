@@ -12,6 +12,7 @@ public:
         PI, PD, COMA, PC, DOT,
         ASSIGN, COLON,
 
+
         /* literales e identificadores */
         NUM, ID,
 
