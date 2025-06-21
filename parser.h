@@ -6,6 +6,7 @@
 #include <list>     /* necesitado por los métodos privados */
 
 class Parser {
+
 private:
     /*——————  estado ——————*/
     Scanner* scanner;

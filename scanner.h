@@ -4,6 +4,7 @@
 #include <string>
 #include "token.h"
 
+
 /* Analizador léxico muy simple para Pascal reducido */
 class Scanner {
     std::string input;       /* código fuente completo              */
