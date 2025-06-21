@@ -7,7 +7,7 @@
 #include <list>
 
 /* adelantos de clases AST */
-class BinaryExp;  class NumberExp;  class BoolExp;
+class BinaryExp;  class NumberExp; class FloatExp; class BoolExp;
 class IdentifierExp; class IFExp;   class FCallExp;
 class AssignStatement; class PrintStatement;
 class IfStatement; class WhileStatement; class ForStatement;
@@ -19,12 +19,14 @@ class RecordTypeAccessExp;
 class Visitor {
 public:
     /* expresiones */
-    virtual int  visit(BinaryExp*)      = 0;
-    virtual int  visit(NumberExp*)      = 0;
+    virtual float  visit(BinaryExp*)      = 0;
+    virtual float  visit(NumberExp*)      = 0;
     virtual int  visit(BoolExp*)        = 0;
-    virtual int  visit(IdentifierExp*)  = 0;
-    virtual int  visit(IFExp*)          = 0;
-    virtual int  visit(FCallExp*)       = 0;
+    virtual float  visit(IdentifierExp*)  = 0;
+    virtual float  visit(IFExp*)          = 0;
+    virtual float  visit(FCallExp*)       = 0;
+    virtual float visit(FloatExp*) = 0;
+
 
     virtual int visit(RecordTypeAccessExp*) = 0;
     virtual int visit(TypeDec*) = 0;
@@ -55,12 +57,15 @@ public:
     void imprimir(Program*);
 
     /* expresiones */
-    int  visit(BinaryExp*)      override;
-    int  visit(NumberExp*)      override;
+    float  visit(BinaryExp*)      override;
+    float  visit(NumberExp*)      override;
+
+    float visit(FloatExp *) override;
+
     int  visit(BoolExp*)        override;
-    int  visit(IdentifierExp*)  override;
-    int  visit(IFExp*)          override;
-    int  visit(FCallExp*)       override;
+    float  visit(IdentifierExp*)  override;
+    float  visit(IFExp*)          override;
+    float  visit(FCallExp*)       override;
     int visit(RecordTypeAccessExp*) override;
     int visit(TypeDec*)override;
     int visit(TypeDecList*) override;
@@ -87,7 +92,7 @@ public:
 class EVALVisitor : public Visitor {
     Environment env;
     std::unordered_map<std::string, FunDec*> fdecs;
-    int  retval  = 0;
+    float  retval  = 0.0f;
     bool retcall = false;
     std::string currFun;
 public:
@@ -96,12 +101,15 @@ public:
     void visit(Program*) override;
 
     /* expresiones */
-    int  visit(BinaryExp*)      override;
-    int  visit(NumberExp*)      override;
+    float  visit(BinaryExp*)      override;
+    float  visit(NumberExp*)      override;
+
+    float visit(FloatExp *) override;
+
     int  visit(BoolExp*)        override;
-    int  visit(IdentifierExp*)  override;
-    int  visit(IFExp*)          override;
-    int  visit(FCallExp*)       override;
+    float  visit(IdentifierExp*)  override;
+    float  visit(IFExp*)          override;
+    float  visit(FCallExp*)       override;
 
     int visit(RecordTypeAccessExp*) override;
     int visit(TypeDec*)override;

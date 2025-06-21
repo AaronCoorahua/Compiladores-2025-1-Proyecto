@@ -34,6 +34,8 @@ ostream& operator<<(ostream& outs, const Token& tok)
 
         case Token::NUM       : outs << "TOKEN(NUM)";       break;
         case Token::ID        : outs << "TOKEN(ID)";        break;
+        case Token::NUM_FLOAT : outs << "TOKEN(NUM_FLOAT)"; break;
+
 
         case Token::PROGRAM   : outs << "TOKEN(PROGRAM)";   break;
         case Token::VAR       : outs << "TOKEN(VAR)";       break;

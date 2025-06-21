@@ -3,17 +3,21 @@
 #include <iostream>
 #include <unordered_map>
 #include <string>
+#include <iomanip>
 using namespace std;
 
 /* ─────────────────── Despachos accept() generados ──────────────────── */
 /* expresiones */
-int BinaryExp     ::accept(Visitor* v){ return v->visit(this); }
-int NumberExp     ::accept(Visitor* v){ return v->visit(this); }
-int BoolExp       ::accept(Visitor* v){ return v->visit(this); }
-int IdentifierExp ::accept(Visitor* v){ return v->visit(this); }
-int IFExp         ::accept(Visitor* v){ return v->visit(this); }
-int FCallExp      ::accept(Visitor* v){ return v->visit(this); }
-int RecordTypeAccessExp ::accept(Visitor *v){return  v->visit(this); }
+float BinaryExp     ::accept(Visitor* v){ return v->visit(this); }
+float NumberExp     ::accept(Visitor* v){ return v->visit(this); }
+
+float FloatExp     ::accept(Visitor* v){ return v->visit(this); }
+
+float BoolExp       ::accept(Visitor* v){ return v->visit(this); }
+float IdentifierExp ::accept(Visitor* v){ return v->visit(this); }
+float IFExp         ::accept(Visitor* v){ return v->visit(this); }
+float FCallExp      ::accept(Visitor* v){ return v->visit(this); }
+float RecordTypeAccessExp ::accept(Visitor *v){return  v->visit(this); }
 /* sentencias */
 int AssignStatement ::accept(Visitor* v){ v->visit(this); return 0; }
 int PrintStatement  ::accept(Visitor* v){ v->visit(this); return 0; }
@@ -37,23 +41,27 @@ int FunDecList ::accept(Visitor* v){ v->visit(this); return 0; }
 /* ===================================================================== */
 /*                          PrintVisitor                                 */
 /* ===================================================================== */
-int PrintVisitor::visit(BinaryExp* e){
+float PrintVisitor::visit(BinaryExp* e){
     e->left->accept(this);
     cout << ' ' << Exp::binopToChar(e->op) << ' ';
     e->right->accept(this);
     return 0;
 }
-int PrintVisitor::visit(NumberExp* e){ cout << e->value; return 0; }
+float PrintVisitor::visit(NumberExp* e){ cout << e->value; return 0; }
+
+float PrintVisitor::visit(FloatExp* e)  { cout << fixed << setprecision(2) << e->value; return e->value; }
+
+
 int PrintVisitor::visit(BoolExp*   e){ cout << (e->value ? "true":"false"); return 0; }
-int PrintVisitor::visit(IdentifierExp* e){ cout << e->name; return 0; }
-int PrintVisitor::visit(IFExp* e){
+float PrintVisitor::visit(IdentifierExp* e){ cout << e->name; return 0; }
+float PrintVisitor::visit(IFExp* e){
     cout << "ifexp(";
     e->cond ->accept(this); cout << ", ";
     e->left ->accept(this); cout << ", ";
     e->right->accept(this); cout << ")";
     return 0;
 }
-int PrintVisitor::visit(FCallExp*){ return 0; }          /* simplificado */
+float PrintVisitor::visit(FCallExp*){ return 0; }          /* simplificado */
 
 /* sentencias */
 void PrintVisitor::visit(AssignStatement* s){
@@ -143,8 +151,8 @@ void PrintVisitor::imprimir(Program* p){
 // Se asume que EVALVisitor ahora tiene un miembro std::string currFun;
 // definido y puesto a "" en el constructor.
 
-int EVALVisitor::visit(BinaryExp* e){
-    int v1=e->left->accept(this), v2=e->right->accept(this);
+float EVALVisitor::visit(BinaryExp* e){
+    float v1=e->left->accept(this), v2=e->right->accept(this);
     switch(e->op){
         case PLUS_OP : return v1+v2;
         case MINUS_OP: return v1-v2;
@@ -158,51 +166,68 @@ int EVALVisitor::visit(BinaryExp* e){
         default      : return 0;
     }
 }
-int EVALVisitor::visit(NumberExp* e){ return e->value; }
+float EVALVisitor::visit(NumberExp* e){ return e->value; }
+
+float EVALVisitor::visit(FloatExp* e)  { return (e->value); }
 int EVALVisitor::visit(BoolExp*   e){ return e->value; }
 
-int EVALVisitor::visit(IdentifierExp* e){
+float EVALVisitor::visit(IdentifierExp* e){
     if (!env.check(e->name)){ cerr<<"Var no declarada "<<e->name<<endl; return 0; }
     return env.lookup(e->name);
 }
-int EVALVisitor::visit(IFExp* e){
+float EVALVisitor::visit(IFExp* e){
     return e->cond->accept(this)? e->left->accept(this)
                                 : e->right->accept(this);
 }
-int EVALVisitor::visit(FCallExp* e){
-    if (!fdecs.count(e->nombre)){ cerr<<"Func no def: "<<e->nombre<<endl; exit(1); }
-    FunDec* f=fdecs[e->nombre];
-    if (f->parametros.size()!=e->argumentos.size()){
-        cerr<<"Aridad incorrecta en "<<e->nombre<<endl; exit(1);
+float EVALVisitor::visit(FCallExp* e) {
+    if (!fdecs.count(e->nombre)) {
+        cerr << "Func no def: " << e->nombre << endl;
+        exit(1);
     }
 
-    // crear nuevo scope
+    FunDec* f = fdecs[e->nombre];
+
+    if (f->parametros.size() != e->argumentos.size()) {
+        cerr << "Aridad incorrecta en " << e->nombre << endl;
+        exit(1);
+    }
+
+    // Crear nuevo scope
     env.add_level();
-    // ❶ registrar variable‑resultado
-    env.add_var(f->nombre, 0, f->tipo);
-    string savedFun = currFun;   // conservar función exterior (si cualquier)
+
+    // ❶ Registrar variable resultado como float
+    env.add_var(f->nombre, 0.0f, f->tipo);  // ← asegurarse que es float
+
+    // Guardar el nombre de la función actual
+    string savedFun = currFun;
     currFun = f->nombre;
 
-    // cargar parámetros
-    auto pit=f->parametros.begin(), tit=f->tipos.begin();
-    auto ait=e->argumentos.begin();
-    for (; pit!=f->parametros.end(); ++pit,++tit,++ait)
+    // Cargar parámetros
+    auto pit = f->parametros.begin(), tit = f->tipos.begin();
+    auto ait = e->argumentos.begin();
+    for (; pit != f->parametros.end(); ++pit, ++tit, ++ait)
         env.add_var(*pit, (*ait)->accept(this), *tit);
 
-    retcall=false;
+    retcall = false;
     f->cuerpo->accept(this);
 
-    if (!retcall){ cerr<<"Func "<<e->nombre<<" sin return()\n"; exit(1); }
-    int ret = retval;
+    if (!retcall) {
+        cerr << "Func " << e->nombre << " sin return()\n";
+        exit(1);
+    }
+
+    float ret = retval;  // ← este 'retval' debe ser declarado como float
 
     env.remove_level();
-    currFun = savedFun;          // restaurar contexto exterior
+    currFun = savedFun;
+
     return ret;
 }
 
+
 /* sentencias */
 void EVALVisitor::visit(AssignStatement* s) {
-    int val = s->rhs->accept(this);
+    float val = s->rhs->accept(this);
 
     // Asignar directamente si es un identificador simple
     if (auto* id = static_cast<IdentifierExp*>(s->lhs)) {
@@ -240,7 +265,7 @@ void EVALVisitor::visit(WhileStatement* s){
         s->b->accept(this);
 }
 void EVALVisitor::visit(ReturnStatement* s){
-    retval  = s->e ? s->e->accept(this) : 0;
+    retval  = s->e->accept(this);
     retcall = true;
 }
 

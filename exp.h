@@ -20,7 +20,7 @@ enum BinaryOp { PLUS_OP, MINUS_OP, MUL_OP, DIV_OP,
 /* ===================================================================== */
 class Exp {
 public:
-    virtual int  accept(Visitor*) = 0;
+    virtual float  accept(Visitor*) = 0;
     virtual ~Exp() = default;
     static string binopToChar(BinaryOp);
 };
@@ -31,7 +31,7 @@ public:
     Exp *cond, *left, *right;
     IFExp(Exp*, Exp*, Exp*);
     ~IFExp();
-    int accept(Visitor*) override;
+    float accept(Visitor*) override;
 };
 
 /* --------- a + b, a < b, … ----------------------------------------- */
@@ -42,7 +42,7 @@ public:
     BinaryOp op;
     BinaryExp(Exp*, Exp*, BinaryOp);
     ~BinaryExp();
-    int accept(Visitor*) override;
+    float accept(Visitor*) override;
 };
 
 /* --------- literales ------------------------------------------------- */
@@ -51,15 +51,24 @@ public:
     int value;
     explicit NumberExp(int v);
     ~NumberExp();
-    int accept(Visitor*) override;
+    float accept(Visitor*) override;
 };
+
+class FloatExp : public Exp {
+public:
+    float value;
+    explicit FloatExp(float v);
+    ~FloatExp();
+    float accept(Visitor*) override;
+};
+
 
 class BoolExp : public Exp {
 public:
     int value;                /* 1 = true / 0 = false */
     explicit BoolExp(bool v);
     ~BoolExp();
-    int accept(Visitor*) override;
+    float accept(Visitor*) override;
 };
 
 class IdentifierExp : public Exp {
@@ -67,7 +76,7 @@ public:
     string name;
     explicit IdentifierExp(const string&);
     ~IdentifierExp();
-    int accept(Visitor*) override;
+    float accept(Visitor*) override;
 };
 
 /* --------- llamada a función ---------------------------------------- */
@@ -77,7 +86,7 @@ public:
     list<Exp*> argumentos;
     FCallExp() = default;
     ~FCallExp() override = default;     /* nada que destruir: se libera visitante */
-    int accept(Visitor*) override;
+    float accept(Visitor*) override;
 };
 
 /* ===================================================================== */
@@ -158,7 +167,7 @@ public:
     RecordTypeAccessExp(Exp* base, const string& field);
     ~RecordTypeAccessExp();
 
-    int accept(Visitor* v) override;
+    float accept(Visitor* v) override;
 };
 class Field {
 public:

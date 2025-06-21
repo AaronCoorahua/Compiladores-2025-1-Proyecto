@@ -12,7 +12,7 @@ using namespace std;
 
 class Environment {
 private:
-    vector<unordered_map<string, int>> levels;  // Almacena valores de variables
+    vector<unordered_map<string, float>> levels;  // Almacena valores de variables
     vector<unordered_map<string, string>> type_levels;  // Almacena tipos de variables
 
     // Busca el nivel en el que está una variable
@@ -37,14 +37,14 @@ public:
 
     // Añadir un nuevo nivel
     void add_level() {
-        unordered_map<string, int> l;
+        unordered_map<string, float> l;
         unordered_map<string, string> t;  // Mapa para tipos
         levels.push_back(l);
         type_levels.push_back(t);
     }
 
     // Añadir una variable con su valor y tipo
-    void add_var(string var, int value, string type) {
+    void add_var(string var, float value, string type) {
         if (levels.size() == 0) {
             cout << "Environment sin niveles: no se pueden agregar variables" << endl;
             exit(0);
@@ -70,7 +70,7 @@ public:
     }
 
     // Actualizar el valor de una variable
-    bool update(string x, int v) {
+    bool update(string x, float v) {
         int idx = search_rib(x);
         if (idx < 0) return false;
         levels[idx][x] = v;
@@ -84,7 +84,7 @@ public:
     }
 
     // Obtener el valor de una variable
-    int lookup(string x) {
+    float lookup(string x) {
         int idx = search_rib(x);
         if (idx < 0) {
             cout << "Variable no declarada: " << x << endl;
@@ -113,11 +113,11 @@ public:
         return true;
     }
     // STRUCT
-    bool update(string record, string field, int value) {
+    bool update(string record, string field, float value) {
         string fullName = record + "." + field;
         return update(fullName, value); }
 
-    int lookup(string record, string field) {
+    float lookup(string record, string field) {
         string fullName = record + "." + field;
         return lookup(fullName);
     }

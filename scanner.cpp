@@ -20,10 +20,16 @@ Token* Scanner::nextToken()
     first   = current;
 
     /*---------- número --------------------------------------------------*/
-    if (isdigit(c))
-    {
-        while (current < (int)input.size() && isdigit(input[++current]));
-        return new Token(Token::NUM, input, first, current-first);
+    if (isdigit(c)) {
+        bool hasDot = false;
+        while (current < (int)input.size() && (isdigit(input[current]) || (!hasDot && input[current] == '.'))) {
+            if (input[current] == '.') hasDot = true;
+            current++;
+        }
+        if (hasDot)
+            return new Token(Token::NUM_FLOAT, input, first, current - first);
+        else
+            return new Token(Token::NUM, input, first, current - first);
     }
 
     /*---------- palabra / identificador --------------------------------*/

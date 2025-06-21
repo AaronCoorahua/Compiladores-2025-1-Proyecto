@@ -1,3 +1,3 @@
-C:/Users/jefersson/Desktop/Compiladores-2025-1-Proyecto/cmake-build-debug/CMakeFiles/Proyecto.dir
-C:/Users/jefersson/Desktop/Compiladores-2025-1-Proyecto/cmake-build-debug/CMakeFiles/edit_cache.dir
-C:/Users/jefersson/Desktop/Compiladores-2025-1-Proyecto/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+C:/Users/gadie/OneDrive/Documentos/compilabs/proyec/cmake-build-debug/CMakeFiles/proyec.dir
+C:/Users/gadie/OneDrive/Documentos/compilabs/proyec/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/gadie/OneDrive/Documentos/compilabs/proyec/cmake-build-debug/CMakeFiles/rebuild_cache.dir

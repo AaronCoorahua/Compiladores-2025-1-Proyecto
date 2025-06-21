@@ -16,10 +16,12 @@ BinaryExp::BinaryExp(Exp* l, Exp* r, BinaryOp op)
 }
 
 NumberExp   ::NumberExp(int v)              : value(v) {}
+FloatExp    ::FloatExp(float v) : value(v) {}
 BoolExp     ::BoolExp(bool v)               : value(v) {}
 IdentifierExp::IdentifierExp(const string& n): name(n) {}
 
 NumberExp::~NumberExp()  = default;
+FloatExp::~FloatExp()  = default;
 BoolExp::~BoolExp()      = default;
 IdentifierExp::~IdentifierExp() = default;
 

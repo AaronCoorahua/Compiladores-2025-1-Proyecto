@@ -15,6 +15,9 @@ public:
         /* literales e identificadores */
         NUM, ID,
 
+        /*numeros flotantes*/
+        NUM_FLOAT,
+
         /* palabras clave */
         PROGRAM, VAR, FUNCTION,
         BEGIN_KW, END_KW,

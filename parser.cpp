@@ -265,6 +265,8 @@ Exp* Parser::parseFactor() {
     if (match(Token::TRUE))  return new BoolExp(1);
     if (match(Token::FALSE)) return new BoolExp(0);
     if (match(Token::NUM))   return new NumberExp(stoi(previous->text));
+    if (match(Token::NUM_FLOAT)) return new FloatExp(stof(previous->text));
+
 
     if (match(Token::ID)) {
         string name = previous->text;

@@ -1,19 +1,12 @@
-program ejemplo;
+program mixto;
 
 var
-  x, y, r: integer;
-
-function mayor(a, b: integer): integer;
-begin
-  if a < b then
-    mayor := b
-  else
-    mayor := a;
-end;
+  i : integer;
+  r, total : real;
 
 begin
-  x := 10;
-  y := 20;
-  r := mayor(x, y);
-  writeln(r);
+  i := 5;
+  r := 2.5;
+  total := i + r;
+  writeln(total);
 end.
