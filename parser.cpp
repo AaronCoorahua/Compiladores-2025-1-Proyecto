@@ -368,7 +368,6 @@ RecordVarDec* Parser::parseField() {
         cerr << "Se espera tipo del campo\n"; exit(1);
     }
     string fieldType = previous->text;
-    cout<<"field :"<< fieldName << " : " << fieldType << endl;
     return new RecordVarDec(fieldName, fieldType);
 }
 vector<RecordVarDec*> Parser::parseFieldList() {

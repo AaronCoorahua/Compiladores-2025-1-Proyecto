@@ -97,6 +97,9 @@ public:
 class EVALVisitor : public Visitor {
     Environment env;
     std::unordered_map<std::string, FunDec*> fdecs;
+
+    unordered_map<string, vector<RecordVarDec*>> type_registry;
+
     int  retval  = 0;
     bool retcall = false;
     std::string currFun;

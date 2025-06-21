@@ -15,6 +15,9 @@ private:
     vector<unordered_map<string, int>> levels;  // Almacena valores de variables
     vector<unordered_map<string, string>> type_levels;  // Almacena tipos de variables
 
+    unordered_map<string, unordered_map<string, double>> record_values;
+    unordered_map<string, unordered_map<string, string>> record_types;
+
     // Busca el nivel en el que está una variable
     int search_rib(string var) {
         int idx = levels.size() - 1;
@@ -112,6 +115,62 @@ public:
         }
         return true;
     }
+    //----- STRUCT -----//
+    void add_record(string name, const vector<RecordVarDec*>& fields, string record_type) {
+        for (auto* f : fields) {
+            record_values[name][f->atribute] = 0.0;             // valor por defecto
+            record_types[name][f->atribute] = f->type;          // "int" o "float"
+        }
+        add_var(name, record_type);  // guarda el nombre del tipo del record
+    }
+    // para verificar si el campo existe en un record r.y ?
+    bool has_field(string record, string field) {
+        return record_values.count(record) &&
+               record_values[record].count(field);
+    }
+    // Retorna el valor de un campo del registro.
+    double get_field(string record, string field) {
+        if (!has_field(record, field)) {
+            cerr << "Campo no encontrado: " << record << "." << field << endl;
+            exit(1);
+        }
+        return record_values[record][field];
+    }
+    //Actualiza el valor de un campo.
+    void set_field(string record, string field, double value) {
+        if (!has_field(record, field)) {
+            cerr << "Campo no encontrado: " << record << "." << field << endl;
+            exit(1);
+        }
+        record_values[record][field] = value;
+    }
+    //Devuelve el tipo ("int" o "float") de un campo del registro
+    string get_field_type(string record, string field) {
+        if (!has_field(record, field)) {
+            cerr << "Campo no encontrado: " << record << "." << field << endl;
+            exit(1);
+        }
+        return record_types[record][field];
+    }
+    void debug_print() {
+        cout << "---- ENTORNO ACTUAL ----\n";
+        for (int i = levels.size()-1; i >= 0; i--) {
+            cout << "Nivel " << i << ":\n";
+            for (auto& [var, val] : levels[i])
+                cout << "  " << var << " = " << val << " (" << type_levels[i][var] << ")\n";
+        }
+        cout << "\n--- RECORDS ---\n";
+        for (auto& [record, fields] : record_values) {
+            cout << record << ":\n";
+            for (auto& [f, v] : fields)
+                cout << "  ." << f << " = " << v << " (" << record_types[record][f] << ")\n";
+        }
+    }
+
+
+
+
+
 };
 
 #endif

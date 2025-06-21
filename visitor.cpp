@@ -235,7 +235,16 @@ void EVALVisitor::visit(ReturnStatement* s){
 }
 
 /* bloques */
-void EVALVisitor::visit(VarDec* v){ for (auto& id:v->vars) env.add_var(id,v->type); }
+void EVALVisitor::visit(VarDec* v) {
+    for (auto& id : v->vars) {
+        if (type_registry.count(v->type)) {
+            env.add_record(id, type_registry[v->type], v->type);
+        } else {
+            env.add_var(id, v->type);
+        }
+    }
+}
+
 void EVALVisitor::visit(VarDecList* v){ for (auto d:v->vardecs) d->accept(this); }
 void EVALVisitor::visit(StatementList* s){ for (auto st:s->stms) st->accept(this); }
 void EVALVisitor::visit(Body* b){
@@ -252,6 +261,7 @@ void EVALVisitor::visit(FunDecList* l){ for (auto f:l->Fundecs) visit(f); }
 /* programa */
 void EVALVisitor::visit(Program* p){
     env.add_level();
+    p->typeDecList->accept(this);
     p->vardecs->accept(this);
     p->fundecs->accept(this);
     p->mainBody->accept(this);
@@ -325,22 +335,37 @@ void EVALVisitor::visit(ForStatement* s){
     env.remove_level();
 }
 
-int EVALVisitor::visit(RecordTIdentifierExp*) {
-    return 0;
+int EVALVisitor::visit(RecordTIdentifierExp* e) {
+    if(!env.has_field(e->base,e->field)){
+        cerr << "Campo no declarado: " << e->base << "." << e->field << endl;
+        exit(1);
+    }
+    return (int) env.get_field(e->base, e->field);
 }
 
-void EVALVisitor::visit(RecordTAssignStatement*) {
+void EVALVisitor::visit(RecordTAssignStatement* s) {
+    if (!env.has_field(s->base, s->field)) {
+        cerr << "[ERROR] Campo no declarado: " << s->base << "." << s->field << endl;
+        exit(1);
+
+    }
+    double val = s->val->accept(this);
+    env.set_field(s->base, s->field, val);
+}
+
+
+void EVALVisitor::visit(TypeDecList* l) {
+    for (auto i :l->typedecs){
+        i->accept(this);
+    }
 
 }
 
-void EVALVisitor::visit(TypeDecList*) {
-
+void EVALVisitor::visit(TypeDec* t) {
+    type_registry[t->name] = t->atributs;
 }
 
-void EVALVisitor::visit(TypeDec*) {
-
-}
-
-void EVALVisitor::visit(RecordVarDec *) {
-
+void EVALVisitor::visit(RecordVarDec* rv) {
+    cerr << "[ERROR] visit(RecordVarDec*) no debería ser llamado en EVALVisitor\n";
+    exit(1);
 }
