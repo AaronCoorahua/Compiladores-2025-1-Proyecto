@@ -1,12 +1,11 @@
-program mixto;
+program suma1;
 
 var
-  i : integer;
-  r, total : real;
+  a, b, c : real;
 
 begin
-  i := 5;
-  r := 2.5;
-  total := i + r;
-  writeln(total);
+  a := 1.5;
+  b := 2.25;
+  c := a + b;
+  writeln(c);
 end.

@@ -1,17 +1,8 @@
-program whileprogram;
+program asigna;
 
 var
-  i, suma: integer;
+  x : real;
 
 begin
-  i := 1;
-  suma := 0;
-
-  while i <= 10 do
-  begin
-    suma := suma + i;
-    i := i + 1;
-  end;
-
-  writeln(suma);
-end.
+  x := 10.0;
+  writeln(x);

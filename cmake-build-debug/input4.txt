@@ -1,16 +1,10 @@
-program logica;
+program cuadrado;
 
-var
-  a, b: integer;
-
-function esmayor(x, y: integer): boolean;
+function square(x : real) : real;
 begin
-  esmayor := x > y;
+  return(x * x);
 end;
 
 begin
-  a := 4;
-  b := 2;
-
-  writeln(esmayor(a, b));
+  writeln(square(2.5));
 end.

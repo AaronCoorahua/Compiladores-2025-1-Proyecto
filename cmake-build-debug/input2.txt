@@ -1,21 +1,11 @@
-program contar;
+program suma2;
 
 var
-  i, total: integer;
+  i : integer;
+  r : real;
 
 begin
-  i := 1;
-  total := 0;
-
-  while i <= 5 do
-  begin
-    if i - (i / 2) * 2 == 0 then
-    begin
-      writeln(i);
-      total := total + i;
-    end;
-    i := i + 1;
-  end;
-
-  writeln(total);
+  i := 2;
+  r := 3.14;
+  writeln(i + r);
 end.

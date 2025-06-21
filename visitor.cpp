@@ -64,9 +64,22 @@ float PrintVisitor::visit(IFExp* e){
 float PrintVisitor::visit(FCallExp*){ return 0; }          /* simplificado */
 
 /* sentencias */
-void PrintVisitor::visit(AssignStatement* s){
-    cout << s->lhs->accept(this) << " := "; s->rhs->accept(this); cout << ";";
+void PrintVisitor::visit(AssignStatement* s) {
+    if (auto* id = dynamic_cast<IdentifierExp*>(s->lhs)) {
+        cout << id->name << " := ";
+        s->rhs->accept(this);
+        cout << "; ";
+        return;
+    }
+
+    if (auto* field = dynamic_cast<RecordTypeAccessExp*>(s->lhs)) {
+        auto* baseId = dynamic_cast<IdentifierExp*>(field->base);
+        cout << baseId->name << "." << field->field << " := ";
+        s->rhs->accept(this);
+        cout << "; ";
+    }
 }
+
 void PrintVisitor::visit(PrintStatement* s){
     cout << "writeln("; s->e->accept(this); cout << ");";
 }
