@@ -1,36 +1,55 @@
-Program        ::= 'program' id ';' VarDecList FunDecList? 'begin' StmtList 'end.'
+Program        ::= 'program' id ';' TypeDecList? VarDecList FunDecList? Body '.'
+
+Body 	       ::= 'begin' VarDecList? StmtList 'end'
+
+TypeDecList    ::= ('type' TypeDec)*
+
+TypeDec        ::= id '=' Type ';'
 
 VarDecList     ::= ('var' VarList ':' Type ';')*
 FunDecList     ::= (FunctionDec)*
 
-FunctionDec    ::= 'function' id '(' ParamList? ')' ':' Type ';' 'begin' StmtList 'end' ';'
+FunctionDec    ::= 'function' id '(' ParamList? ')' ':' Type ';' 'begin' StmtList 'end' ';'   
 
 ParamList      ::= Param (',' Param)*
 Param          ::= id ':' Type
 
 VarList        ::= id (',' id)*
 
-Type           ::= 'integer' | 'boolean'|'real'
+Type           ::= 'integer' | 'boolean'  | record_type |'real'   
+
+record_type    ::= 'record' field_list 'end'
+field_list     ::= field (';' field)* ';'
+field          ::= id ':' Type
+
 
 StmtList       ::= (Stmt ';')*
 
 Stmt           ::= id ':=' CExp
+		   id'.'id := CExp 
+ 
+
                 | 'writeln' '(' CExp ')'
                 | 'return' '(' CExp? ')'
                 | 'if' CExp 'then' BlockOrStmt ('else' BlockOrStmt)?
                 | 'while' CExp 'do' BlockOrStmt
                 | 'for' id ':=' CExp ('to' | 'downto') CExp 'do' BlockOrStmt
 
-BlockOrStmt    ::= Stmt | 'begin' StmtList 'end'
+BlockOrStmt    ::=  Stmt | 'begin' StmtList 'end'
 
 CExp           ::= Exp (('<' | '<=' | '>' | '>=' | '==') Exp)?
 Exp            ::= Term (('+' | '-') Term)*
 Term           ::= Factor (('*' | '/') Factor)*
 Factor         ::= id
                 | num
+		| float
                 | 'true'
                 | 'false'
                 | '(' CExp ')'
                 | id '(' ArgList? ')'
+		| id '.' id                   -- acceso a campo
+
+
+
 
 ArgList        ::= CExp (',' CExp)*
