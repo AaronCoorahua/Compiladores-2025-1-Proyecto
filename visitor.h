@@ -24,7 +24,7 @@ public:
     virtual int  visit(BoolExp*)        = 0;
     virtual float  visit(IdentifierExp*)  = 0;
     virtual float  visit(IFExp*)          = 0;
-    virtual float  visit(FCallExp*)       = 0;
+    virtual float visit(FCallExp*)       = 0;
     virtual float visit(FloatExp*) = 0;
 
 
