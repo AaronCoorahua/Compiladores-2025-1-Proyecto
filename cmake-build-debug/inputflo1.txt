@@ -1,0 +1,11 @@
+program suma1;
+
+var
+  a, b, c : real;
+
+begin
+  a := 1.5;
+  b := 2.25;
+  c := a + b;
+  writeln(c);
+end.
