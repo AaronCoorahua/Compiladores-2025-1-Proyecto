@@ -21,6 +21,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="fbed83fd-de08-44f6-8fb2-ada5dba87a53" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmake-build-debug/Testing/Temporary/LastTest.log" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/Testing/Temporary/LastTest.log" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -81,7 +82,7 @@
     <configuration name="Proyecto" type="CMakeListConfigurationType" factoryName="CMakeListConfigurationFactory" temporary="true">
       <method v="2" />
     </configuration>
-    <configuration name="Proyecto" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="struct_input1.txt" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="Proyecto" TARGET_NAME="Proyecto" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="Proyecto" RUN_TARGET_NAME="Proyecto">
+    <configuration name="Proyecto" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="struct_input3.txt" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="Proyecto" TARGET_NAME="Proyecto" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="Proyecto" RUN_TARGET_NAME="Proyecto">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
@@ -122,7 +123,8 @@
       <workItem from="1749752195505" duration="532000" />
       <workItem from="1750100468243" duration="5057000" />
       <workItem from="1750349816615" duration="8227000" />
-      <workItem from="1750467558365" duration="5322000" />
+      <workItem from="1750467558365" duration="6031000" />
+      <workItem from="1750710591552" duration="1256000" />
     </task>
     <servers />
   </component>
