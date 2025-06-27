@@ -13,6 +13,9 @@ class AssignStatement; class PrintStatement;
 class IfStatement; class WhileStatement; class ForStatement;
 class VarDec; class VarDecList; class StatementList; class Body;
 class FunDec; class FunDecList; class ReturnStatement; class Program;
+
+class TypeDec;
+class TypeDecList;
 class RecordTypeAccessExp;
 
 /* ───────────────────── Interface base ──────────────────────────────── */
