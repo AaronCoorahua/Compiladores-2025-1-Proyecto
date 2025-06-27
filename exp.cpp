@@ -97,13 +97,15 @@ string Exp::binopToChar(BinaryOp op)
     }
 }
 
-TypeDec::TypeDec(string name, vector<Field> atributs) {
+TypeDec::TypeDec(string name, vector<RecordVarDec*> atributs) {
     this->name = name;
     this->atributs = atributs;
 }
 
 TypeDec::~TypeDec() {
-
+    for (auto a : atributs) {
+        delete a;
+    }
 }
 
 
@@ -121,22 +123,38 @@ TypeDecList::~TypeDecList() {
     }
 }
 
-
 TypeDecList::TypeDecList() {
     typedecs = list<TypeDec*>();
 }
 
-RecordTypeAccessExp::RecordTypeAccessExp(Exp *base, const string &field) {
+RecordTAssignStatement::RecordTAssignStatement(const string& base, const string &field, Exp* val) {
+    this->base = base;
+    this->field = field;
+    this->val=val;
+}
+
+RecordTAssignStatement::~RecordTAssignStatement() {
+    delete this->val;
+}
+
+RecordTIdentifierExp::RecordTIdentifierExp(const string& base,const string& field)
+{
     this->base = base;
     this->field = field;
 }
 
-RecordTypeAccessExp::~RecordTypeAccessExp() {
-    delete base;
-}
 
 
-Field::Field(string name, string type) {
-    this->name = name;
+RecordTIdentifierExp::~RecordTIdentifierExp() {}
+
+RecordVarDec::RecordVarDec(string atribute, string type)  {
+    this->atribute = atribute;
     this->type = type;
 }
+
+RecordVarDec::~RecordVarDec() {
+
+}
+
+
+

@@ -14,9 +14,11 @@ class IfStatement; class WhileStatement; class ForStatement;
 class VarDec; class VarDecList; class StatementList; class Body;
 class FunDec; class FunDecList; class ReturnStatement; class Program;
 
-class TypeDec;
 class TypeDecList;
-class RecordTypeAccessExp;
+class TypeDec;
+class RecordTIdentifierExp;
+class RecordTAssignStatement;
+class RecordVarDec;
 
 /* ───────────────────── Interface base ──────────────────────────────── */
 class Visitor {
@@ -24,16 +26,12 @@ public:
     /* expresiones */
     virtual float  visit(BinaryExp*)      = 0;
     virtual float  visit(NumberExp*)      = 0;
-    virtual int  visit(BoolExp*)        = 0;
+    virtual float  visit(BoolExp*)        = 0;
     virtual float  visit(IdentifierExp*)  = 0;
     virtual float  visit(IFExp*)          = 0;
     virtual float visit(FCallExp*)       = 0;
     virtual float visit(FloatExp*) = 0;
-
-
-    virtual int visit(RecordTypeAccessExp*) = 0;
-    virtual int visit(TypeDec*) = 0;
-    virtual int visit(TypeDecList*) = 0;
+    virtual float  visit(RecordTIdentifierExp*) =0;
     /* sentencias */
 
     virtual void visit(AssignStatement*) = 0;
@@ -42,12 +40,16 @@ public:
     virtual void visit(ForStatement*)    = 0;
     virtual void visit(WhileStatement*)  = 0;
     virtual void visit(ReturnStatement*) = 0;
+    virtual void visit(RecordTAssignStatement*)=0;
 
     /* bloques y listas */
     virtual void visit(VarDec*)          = 0;
     virtual void visit(VarDecList*)      = 0;
     virtual void visit(StatementList*)   = 0;
     virtual void visit(Body*)            = 0;
+    virtual void visit(TypeDecList*)      = 0;
+    virtual void visit(TypeDec*)          = 0;
+    virtual void visit(RecordVarDec*) = 0;
 
     /* funciones y programa */
     virtual void visit(FunDec*)          = 0;
@@ -58,21 +60,21 @@ public:
 /* ───────────────────── Pretty-printer ──────────────────────────────── */
 class PrintVisitor : public Visitor {
 public:
+    int nivel_indentacion = 0;
+    string getIndent() {
+        return string(nivel_indentacion * 2, ' ');
+    }
     void imprimir(Program*);
 
     /* expresiones */
     float  visit(BinaryExp*)      override;
     float  visit(NumberExp*)      override;
-
     float visit(FloatExp *) override;
-
-    int  visit(BoolExp*)        override;
+    float  visit(BoolExp*)        override;
     float  visit(IdentifierExp*)  override;
     float  visit(IFExp*)          override;
     float  visit(FCallExp*)       override;
-    int visit(RecordTypeAccessExp*) override;
-    int visit(TypeDec*)override;
-    int visit(TypeDecList*) override;
+    float  visit(RecordTIdentifierExp*) override;
 
     /* sentencias + listas + cuerpos */
     void visit(AssignStatement*) override;
@@ -81,10 +83,15 @@ public:
     void visit(ForStatement*)  override;
     void visit(WhileStatement*)  override;
     void visit(ReturnStatement*) override;
+    void visit(RecordTAssignStatement*) override;
+
     void visit(VarDec*)          override;
     void visit(VarDecList*)      override;
     void visit(StatementList*)   override;
     void visit(Body*)            override;
+    void visit(TypeDecList*)      override;
+    void visit(TypeDec*)          override;
+    void visit(RecordVarDec*)          override;
 
     /* funciones y programa */
     void visit(FunDec*)          override;
@@ -97,6 +104,9 @@ class EVALVisitor : public Visitor {
     Environment env;
     std::unordered_map<std::string, FunDec*> fdecs;
     float  retval  = 0.0f;
+
+    unordered_map<string, vector<RecordVarDec*>> type_registry;
+
     bool retcall = false;
     std::string currFun;
 public:
@@ -107,17 +117,13 @@ public:
     /* expresiones */
     float  visit(BinaryExp*)      override;
     float  visit(NumberExp*)      override;
-
+    float  visit(RecordTIdentifierExp*) override;
     float visit(FloatExp *) override;
-
-    int  visit(BoolExp*)        override;
+    float  visit(BoolExp*)        override;
     float  visit(IdentifierExp*)  override;
     float  visit(IFExp*)          override;
     float  visit(FCallExp*)       override;
 
-    int visit(RecordTypeAccessExp*) override;
-    int visit(TypeDec*)override;
-    int visit(TypeDecList*) override;
     /* sentencias + bloques */
     void visit(AssignStatement*) override;
     void visit(PrintStatement*)  override;
@@ -125,11 +131,15 @@ public:
     void visit(ForStatement*)  override;
     void visit(WhileStatement*)  override;
     void visit(ReturnStatement*) override;
+    void visit(RecordTAssignStatement*) override;
+
     void visit(VarDec*)          override;
     void visit(VarDecList*)      override;
     void visit(StatementList*)   override;
     void visit(Body*)            override;
-
+    void visit(TypeDecList*)      override;
+    void visit(TypeDec*)          override;
+    void visit(RecordVarDec*)          override;
     /* funciones */
     void visit(FunDec*)          override;
     void visit(FunDecList*)      override;

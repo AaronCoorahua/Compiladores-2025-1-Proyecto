@@ -41,8 +41,8 @@ private:
     Exp*           parseTerm();
     Exp*           parseFactor();
 
-    Field          parseField();
-    vector<Field>  parseFieldList();
+    RecordVarDec*          parseField();
+    vector<RecordVarDec*>  parseFieldList();
 public:
     explicit Parser(Scanner*);
     Program* parseProgram();

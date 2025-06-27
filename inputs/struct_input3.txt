@@ -1,0 +1,13 @@
+program ejemplo;
+
+type
+  Datos = record
+    x: float;
+  end;
+var
+  d: Datos;
+
+begin
+  d.x := 10.58;
+  writeln(d.x);
+end.

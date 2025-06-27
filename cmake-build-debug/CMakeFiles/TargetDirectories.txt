@@ -1,3 +1,0 @@
-C:/Users/jefersson/Desktop/Compiladores-2025-1-Proyecto/cmake-build-debug/CMakeFiles/Proyect.dir
-C:/Users/jefersson/Desktop/Compiladores-2025-1-Proyecto/cmake-build-debug/CMakeFiles/edit_cache.dir
-C:/Users/jefersson/Desktop/Compiladores-2025-1-Proyecto/cmake-build-debug/CMakeFiles/rebuild_cache.dir

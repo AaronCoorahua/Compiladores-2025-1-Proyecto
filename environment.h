@@ -9,11 +9,15 @@
 
 using namespace std;
 
+class RecordVarDec;
 
 class Environment {
 private:
     vector<unordered_map<string, float>> levels;  // Almacena valores de variables
     vector<unordered_map<string, string>> type_levels;  // Almacena tipos de variables
+
+    unordered_map<string, unordered_map<string, double>> record_values;
+    unordered_map<string, unordered_map<string, string>> record_types;
 
     // Busca el nivel en el que está una variable
     int search_rib(string var) {
@@ -35,17 +39,15 @@ public:
         type_levels.clear();
     }
 
-    // Añadir un nuevo nivel
     void add_level() {
         unordered_map<string, float> l;
-        unordered_map<string, string> t;  // Mapa para tipos
+        unordered_map<string, string> t;
         levels.push_back(l);
         type_levels.push_back(t);
     }
 
-    // Añadir una variable con su valor y tipo
     void add_var(string var, float value, string type) {
-        if (levels.size() == 0) {
+        if (levels.empty()) {
             cout << "Environment sin niveles: no se pueden agregar variables" << endl;
             exit(0);
         }
@@ -53,15 +55,13 @@ public:
         type_levels.back()[var] = type;
     }
 
-    // Añadir una variable sin valor inicial
     void add_var(string var, string type) {
-        levels.back()[var] = 0;  // Valor por defecto
+        levels.back()[var] = 0;
         type_levels.back()[var] = type;
     }
 
-    // Remover un nivel
     bool remove_level() {
-        if (levels.size() > 0) {
+        if (!levels.empty()) {
             levels.pop_back();
             type_levels.pop_back();
             return true;
@@ -69,7 +69,6 @@ public:
         return false;
     }
 
-    // Actualizar el valor de una variable
     bool update(string x, float v) {
         int idx = search_rib(x);
         if (idx < 0) return false;
@@ -77,13 +76,10 @@ public:
         return true;
     }
 
-    // Verificar si una variable está declarada
     bool check(string x) {
-        int idx = search_rib(x);
-        return (idx >= 0);
+        return search_rib(x) >= 0;
     }
 
-    // Obtener el valor de una variable
     float lookup(string x) {
         int idx = search_rib(x);
         if (idx < 0) {
@@ -93,7 +89,6 @@ public:
         return levels[idx][x];
     }
 
-    // Obtener el tipo de una variable
     string lookup_type(string x) {
         int idx = search_rib(x);
         if (idx < 0) {
@@ -103,8 +98,6 @@ public:
         return type_levels[idx][x];
     }
 
-
-    // Verificar el tipo de una variable antes de asignar un valor
     bool typecheck(string var, string expected_type) {
         string actual_type = lookup_type(var);
         if (actual_type != expected_type) {
@@ -113,27 +106,59 @@ public:
         }
         return true;
     }
-    // STRUCT
-    bool update(string record, string field, float value) {
-        string fullName = record + "." + field;
-        return update(fullName, value); }
 
-    float lookup(string record, string field) {
-        string fullName = record + "." + field;
-        return lookup(fullName);
+    //----- STRUCTS NUEVOS -----//
+    void add_record(string name, const vector<RecordVarDec*>& fields, string record_type) {
+        for (auto* f : fields) {
+            record_values[name][f->atribute] = 0.0;
+            record_types[name][f->atribute] = f->type;
+        }
+        add_var(name, record_type);
     }
 
-    bool check(string record, string field) {
-        string fullName = record + "." + field;
-        return check(fullName);
-    }
-    // d.y1 : int
-    string lookup_type(string record, string field) {
-        string fullName = record + "." + field;
-        return lookup_type(fullName);
+    bool has_field(string record, string field) {
+        return record_values.count(record) &&
+               record_values[record].count(field);
     }
 
+    double get_field(string record, string field) {
+        if (!has_field(record, field)) {
+            cerr << "Campo no encontrado: " << record << "." << field << endl;
+            exit(1);
+        }
+        return record_values[record][field];
+    }
 
+    void set_field(string record, string field, double value) {
+        if (!has_field(record, field)) {
+            cerr << "Campo no encontrado: " << record << "." << field << endl;
+            exit(1);
+        }
+        record_values[record][field] = value;
+    }
+
+    string get_field_type(string record, string field) {
+        if (!has_field(record, field)) {
+            cerr << "Campo no encontrado: " << record << "." << field << endl;
+            exit(1);
+        }
+        return record_types[record][field];
+    }
+
+    void debug_print() {
+        cout << "---- ENTORNO ACTUAL ----\n";
+        for (int i = levels.size()-1; i >= 0; i--) {
+            cout << "Nivel " << i << ":\n";
+            for (auto& [var, val] : levels[i])
+                cout << "  " << var << " = " << val << " (" << type_levels[i][var] << ")\n";
+        }
+        cout << "\n--- RECORDS ---\n";
+        for (auto& [record, fields] : record_values) {
+            cout << record << ":\n";
+            for (auto& [f, v] : fields)
+                cout << "  ." << f << " = " << v << " (" << record_types[record][f] << ")\n";
+        }
+    }
 };
 
 #endif
