@@ -1,0 +1,17 @@
+program whileprogram;
+
+var
+  i, suma: integer;
+
+begin
+  i := 1;
+  suma := 0;
+
+  while i <= 10 do
+  begin
+    suma := suma + i;
+    i := i + 1;
+  end;
+
+  writeln(suma);
+end.
