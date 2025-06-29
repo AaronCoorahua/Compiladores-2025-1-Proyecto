@@ -4,8 +4,7 @@ print_float_fmt: .string "%f\n"
 a: .float 0.0
 b: .float 0.0
 c: .float 0.0
-LC0: .float 1.5
-LC1: .float 2.25
+LC0: .float 4.5
 .text
 .globl main
 main:
@@ -13,12 +12,11 @@ pushq %rbp
 movq %rsp, %rbp
 movss LC0(%rip), %xmm0
 movss %xmm0, a(%rip)
-movss LC1(%rip), %xmm0
+movq $1, %rax
 movss %xmm0, b(%rip)
 movss a(%rip), %xmm0
-movss %xmm0, %xmm1
-movss b(%rip), %xmm0
-addss %xmm1, %xmm0
+movss b(%rip), %xmm1
+subss %xmm1, %xmm0
 movss %xmm0, c(%rip)
 movss c(%rip), %xmm0
 cvtss2sd %xmm0, %xmm0

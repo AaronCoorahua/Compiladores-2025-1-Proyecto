@@ -571,23 +571,52 @@ float CodeGenVisitor::visit(IdentifierExp* e) {
 }
 
 float CodeGenVisitor::visit(BinaryExp* e) {
-    bool leftIsFloat  = dynamic_cast<FloatExp*>(e->left) != nullptr;
-    if(!leftIsFloat) {
-        if(auto id = dynamic_cast<IdentifierExp*>(e->left))
-            leftIsFloat = isFloatVar[id->name];
-    }
-    bool rightIsFloat = dynamic_cast<FloatExp*>(e->right) != nullptr;
-    if(!rightIsFloat) {
-        if(auto id = dynamic_cast<IdentifierExp*>(e->right))
-            rightIsFloat = isFloatVar[id->name];
-    }
-    bool vf = leftIsFloat || rightIsFloat;
+    // 1) ¿Alguno es float?
+    bool leftFloat  = dynamic_cast<FloatExp*>(e->left)
+                    || (dynamic_cast<IdentifierExp*>(e->left)
+                        && isFloatVar[static_cast<IdentifierExp*>(e->left)->name]);
+    bool rightFloat = dynamic_cast<FloatExp*>(e->right)
+                    || (dynamic_cast<IdentifierExp*>(e->right)
+                        && isFloatVar[static_cast<IdentifierExp*>(e->right)->name]);
 
-    if (vf) {
-        // --- Rama float ---
-        e->left->accept(this);             // carga izquierdo en %xmm0
-        out<<"movss %xmm0, %xmm1\n";        // lo guardo en xmm1
-        e->right->accept(this);            // carga derecho en %xmm0
+    if (leftFloat || rightFloat) {
+        // --- cargar operando izquierdo en xmm0 como float ---
+        if (auto fe = dynamic_cast<FloatExp*>(e->left)) {
+            // literal float
+            fe->accept(this);            // movss LCx(%rip), %xmm0
+        }
+        else if (auto id = dynamic_cast<IdentifierExp*>(e->left)) {
+            if (isFloatVar[id->name]) {
+                out<<"movss "<<id->name<<"(%rip), %xmm0\n";
+            } else {
+                out<<"movq "<<id->name<<"(%rip), %rax\n";
+                out<<"cvtsi2ss %rax, %xmm0\n";
+            }
+        }
+        else if (auto ne = dynamic_cast<NumberExp*>(e->left)) {
+            out<<"movq $"<<ne->value<<", %rax\n";
+            out<<"cvtsi2ss %rax, %xmm0\n";
+        }
+
+        // --- cargar operando derecho en xmm1 como float ---
+        if (auto fe = dynamic_cast<FloatExp*>(e->right)) {
+            fe->accept(this);            // movss LCy(%rip), %xmm0
+            out<<"movss %xmm0, %xmm1\n";
+        }
+        else if (auto id = dynamic_cast<IdentifierExp*>(e->right)) {
+            if (isFloatVar[id->name]) {
+                out<<"movss "<<id->name<<"(%rip), %xmm1\n";
+            } else {
+                out<<"movq "<<id->name<<"(%rip), %rax\n";
+                out<<"cvtsi2ss %rax, %xmm1\n";
+            }
+        }
+        else if (auto ne = dynamic_cast<NumberExp*>(e->right)) {
+            out<<"movq $"<<ne->value<<", %rax\n";
+            out<<"cvtsi2ss %rax, %xmm1\n";
+        }
+
+        // --- aplicar la operación en xmm0 ---
         switch(e->op) {
             case PLUS_OP:  out<<"addss %xmm1, %xmm0\n"; break;
             case MINUS_OP: out<<"subss %xmm1, %xmm0\n"; break;
@@ -598,7 +627,7 @@ float CodeGenVisitor::visit(BinaryExp* e) {
         return 0;
     }
 
-    // --- Rama entera (igual que antes) ---
+    // --- caso entero puro (igual que antes) ---
     e->left->accept(this);
     out<<"pushq %rax\n";
     e->right->accept(this);
@@ -613,6 +642,7 @@ float CodeGenVisitor::visit(BinaryExp* e) {
     }
     return 0;
 }
+
 
 void CodeGenVisitor::visit(AssignStatement* s) {
     auto* id = dynamic_cast<IdentifierExp*>(s->lhs);

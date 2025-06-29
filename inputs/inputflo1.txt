@@ -4,8 +4,8 @@ var
   a, b, c : real;
 
 begin
-  a := 1.5;
-  b := 2.25;
+  a := 4.5;
+  b := 1;
   c := a + b;
   writeln(c);
 end.
