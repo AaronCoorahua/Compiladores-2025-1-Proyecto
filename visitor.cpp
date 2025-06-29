@@ -617,9 +617,6 @@ float TYPEVisitor::visit(FCallExp* e) {
 
 
 float TYPEVisitor::visit(RecordTIdentifierExp* e) {
-    cout << "[DEBUG] Acceso a campo: " << e->base << "." << e->field
-         << " con tipo: " << e->type << endl;
-
     if (!env.has_field(e->base, e->field)) {
         cerr << "[TYPE ERROR] Campo no declarado: " << e->base << "." << e->field << endl;
         exit(1);
@@ -721,8 +718,6 @@ void TYPEVisitor::visit(RecordTAssignStatement* s) {
     string expected = env.get_field_type(s->base, s->field);
     string actual = s->val->type;
 
-    cerr << "[DEBUG] Asignando a campo: " << s->base << "." << s->field
-         << " -> esperado: " << expected << ", recibido: " << actual << "\n";
 
     // Validar que se haya asignado el tipo correctamente
     if (actual.empty()) {
@@ -797,9 +792,17 @@ void TYPEVisitor::visit(TypeDec* td) {
 }
 
 void TYPEVisitor::visit(RecordVarDec* rv) {
-    cerr << "[TYPE ERROR] visit(RecordVarDec*) no debe ser llamado directamente\n";
-    exit(1);
+    string tipo = rv->type;
+
+
+    if (current_fields.count(rv->atribute)) {
+        cerr << "[TYPE ERROR] Campo redeclarado en record: " << rv->atribute << "\n";
+        exit(1);
+    }
+
+    current_fields[rv->atribute] = tipo;
 }
+
 
 
 void TYPEVisitor::visit(FunDec* f) {

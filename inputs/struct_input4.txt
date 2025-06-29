@@ -1,0 +1,15 @@
+program structtest;
+
+type
+  Punto = record
+    x: real;
+    y: integer;
+  end;
+
+var
+  p: Punto;
+
+begin
+  p.x := 3.14;
+  p.y := 5.5;
+end.
