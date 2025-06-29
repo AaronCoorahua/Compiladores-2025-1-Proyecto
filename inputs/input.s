@@ -4,6 +4,8 @@ print_float_fmt: .string "%f\n"
 a: .float 0.0
 b: .float 0.0
 c: .float 0.0
+LC1: .float 2.25
+LC0: .float 1.5
 .text
 .globl main
 main:

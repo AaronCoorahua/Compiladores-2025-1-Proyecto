@@ -145,15 +145,21 @@ public:
     void visit(FunDecList*)      override;
 };
 
+
+
+
+
+
+
 #include <ostream>
 #include <string>
 
 class CodeGenVisitor : public Visitor {
     std::ostream& out;
-    std::unordered_map<std::string, float> floatConsts;
-    std::unordered_map<std::string, bool> isFloatVar;
+    std::unordered_map<std::string, float> floatConsts;      // LCx → valor
+    std::unordered_map<float, std::string> literalLabelMap;  // valor → LCx
+    std::unordered_map<std::string, bool> isFloatVar;        // varname → es real?
     int floatLabelCount;
-    std::string newFloatLabel();
 public:
     explicit CodeGenVisitor(std::ostream& output);
     void generate(Program* p);
@@ -185,41 +191,51 @@ public:
 };
 
 
-
+// ── en la sección de ConstCollector ──────────────────────────────────
 class ConstCollector : public Visitor {
     std::unordered_map<std::string, float>& floatConsts;
     int& floatLabelCount;
 public:
-    ConstCollector(std::unordered_map<std::string, float>& fc,int& cnt): floatConsts(fc), floatLabelCount(cnt) {}
-    float visit(FloatExp* e) override {
-        std::string lbl = "LC" + std::to_string(floatLabelCount++);
-        floatConsts[lbl] = e->value;
-        return 0;
-    }
-    // el resto no hace nada
-    float visit(BinaryExp*)         override { return 0; }
-    float visit(NumberExp*)         override { return 0; }
-    float visit(IdentifierExp*)     override { return 0; }
-    float visit(BoolExp*)           override { return 0; }
-    float visit(IFExp*)             override { return 0; }
-    float visit(FCallExp*)          override { return 0; }
+    ConstCollector(std::unordered_map<std::string, float>& fc,int& cnt);
+
+    float visit(FloatExp*     ) override;
+
+    // 2) Recorre expresiones binarias para seguir buscando FloatExp
+    float visit(BinaryExp* e) override;
+
+    // 3) En asignaciones, explora sólo la parte derecha (RHS)
+    void visit(AssignStatement* s) override;
+
+    // 4) En writeln/expression, explora la expresión
+    void visit(PrintStatement* s) override;
+
+    // 5) Recorre todas las sentencias de un bloque
+    void visit(StatementList* s) override;
+    // 6) En el cuerpo principal, recorre sólo la lista de sentencias
+    void visit(Body* b) override;
+
+    // 7) Arranca el recorrido en vardecs y mainBody del Program
+    void visit(Program* p) override;
+
+    // El resto de métodos los puedes dejar vacíos
+    float visit(NumberExp*)            override { return 0; }
+    float visit(IdentifierExp*)        override { return 0; }
+    float visit(BoolExp*)              override { return 0; }
+    float visit(IFExp*)                override { return 0; }
+    float visit(FCallExp*)             override { return 0; }
     float visit(RecordTIdentifierExp*) override { return 0; }
-    void  visit(AssignStatement*)   override {}
-    void  visit(PrintStatement*)    override {}
-    void  visit(IfStatement*)       override {}
-    void  visit(ForStatement*)      override {}
-    void  visit(WhileStatement*)    override {}
-    void  visit(ReturnStatement*)   override {}
+    void  visit(IfStatement*)          override {}
+    void  visit(ForStatement*)         override {}
+    void  visit(WhileStatement*)       override {}
+    void  visit(ReturnStatement*)      override {}
     void  visit(RecordTAssignStatement*) override {}
-    void  visit(VarDec*)            override {}
-    void  visit(VarDecList*)        override {}
-    void  visit(StatementList*)     override {}
-    void  visit(Body*)              override {}
-    void  visit(TypeDecList*)       override {}
-    void  visit(TypeDec*)           override {}
-    void  visit(RecordVarDec*)      override {}
-    void  visit(FunDec*)            override {}
-    void  visit(FunDecList*)        override {}
-    void  visit(Program*)           override {}
+    void  visit(VarDec*)               override {}
+    void  visit(VarDecList*)           override {}
+    void  visit(TypeDecList*)          override {}
+    void  visit(TypeDec*)              override {}
+    void  visit(RecordVarDec*)         override {}
+    void  visit(FunDec*)               override {}
+    void  visit(FunDecList*)           override {}
 };
+
 #endif /* VISITOR_H */

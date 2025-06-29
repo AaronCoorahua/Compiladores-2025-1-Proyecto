@@ -27,13 +27,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="41ecb750-17ed-40a2-a49f-1402a33e5607" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/descompri.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.name" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/Compiladores-2025-1-Proyecto.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/proyec.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inputs/input.s" beforeDir="false" afterPath="$PROJECT_DIR$/inputs/input.s" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/visitor.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/visitor.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/visitor.h" beforeDir="false" afterPath="$PROJECT_DIR$/visitor.h" afterDir="false" />
     </list>
@@ -113,7 +108,7 @@
       <option name="presentableId" value="Default" />
       <updated>1751145695491</updated>
       <workItem from="1751145697264" duration="7728000" />
-      <workItem from="1751208420211" duration="669000" />
+      <workItem from="1751208420211" duration="4243000" />
     </task>
     <servers />
   </component>

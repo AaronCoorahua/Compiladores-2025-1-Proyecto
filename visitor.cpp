@@ -350,6 +350,23 @@ void PrintVisitor::visit(RecordVarDec *rv) {
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void EVALVisitor::visit(ForStatement* s){
     int ini  = s->start->accept(this);
     int fin  = s->end  ->accept(this);
@@ -442,28 +459,70 @@ void EVALVisitor::visit(AssignStatement* stm) {
 }
 
 
-CodeGenVisitor::CodeGenVisitor(std::ostream& output)
-  : out(output), floatLabelCount(0) {}
 
-std::string CodeGenVisitor::newFloatLabel() {
-    return "LC" + std::to_string(floatLabelCount++);
+
+ConstCollector::ConstCollector(std::unordered_map<std::string, float>& fc,
+                               int& cnt)
+  : floatConsts(fc), floatLabelCount(cnt) {}
+
+float ConstCollector::visit(FloatExp* e) {
+    std::string lbl = "LC" + std::to_string(floatLabelCount++);
+    floatConsts[lbl] = e->value;
+    return 0;
 }
+
+float ConstCollector::visit(BinaryExp* e) {
+    e->left->accept(this);
+    e->right->accept(this);
+    return 0;
+}
+
+void ConstCollector::visit(AssignStatement* s) {
+    s->rhs->accept(this);
+}
+
+void ConstCollector::visit(PrintStatement* s) {
+    s->e->accept(this);
+}
+
+void ConstCollector::visit(StatementList* s) {
+    for (auto* st : s->stms)
+        st->accept(this);
+}
+
+void ConstCollector::visit(Body* b) {
+    b->slist->accept(this);
+}
+
+void ConstCollector::visit(Program* p) {
+    p->vardecs->accept(this);
+    p->mainBody->accept(this);
+}
+
+
+CodeGenVisitor::CodeGenVisitor(std::ostream& output): out(output), floatLabelCount(0) {}
 
 void CodeGenVisitor::generate(Program* p) {
 
     ConstCollector collector(floatConsts, floatLabelCount);
-    p->vardecs->accept(&collector);
-    p->mainBody->accept(&collector);
+    collector.visit(p);
 
+    // 2) Ahora sí imprimimos .data con formatos, variables y literales
     out<<".data\n";
     out<<"print_int_fmt: .string \"%ld\\n\"\n";
     out<<"print_float_fmt: .string \"%f\\n\"\n";
     p->vardecs->accept(this);
     for(auto& kv: floatConsts)
         out<<kv.first<<": .float "<<kv.second<<"\n";
-    out<<".text\n";
-    out<<".globl main\n";
-    out<<"main:\n";
+
+    // 3) Construye el map valor→etiqueta
+    for(auto& kv: floatConsts)
+        literalLabelMap[kv.second] = kv.first;
+
+    // 4) Sección .text
+    out<<".text\n"
+       <<".globl main\n"
+       <<"main:\n";
     p->mainBody->accept(this);
     out<<"movq $0, %rax\n";
     out<<"ret\n";
@@ -496,8 +555,7 @@ float CodeGenVisitor::visit(NumberExp* e) {
 }
 
 float CodeGenVisitor::visit(FloatExp* e) {
-    auto lbl = newFloatLabel();
-    floatConsts[lbl] = e->value;
+    auto lbl = literalLabelMap[e->value];
     out<<"movss "<<lbl<<"(%rip), %xmm0\n";
     return 0;
 }
