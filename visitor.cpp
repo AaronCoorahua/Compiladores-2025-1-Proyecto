@@ -461,8 +461,7 @@ void EVALVisitor::visit(AssignStatement* stm) {
 
 
 
-ConstCollector::ConstCollector(std::map<std::string, float>& fc,
-                               int& cnt): floatConsts(fc), floatLabelCount(cnt) {}
+ConstCollector::ConstCollector(std::map<std::string, double>& fc,int& cnt): floatConsts(fc), floatLabelCount(cnt) {}
 
 float ConstCollector::visit(FloatExp* e) {
     std::string lbl = "LC" + std::to_string(floatLabelCount++);
@@ -512,7 +511,7 @@ void CodeGenVisitor::generate(Program* p) {
     out<<"print_float_fmt: .string \"%f\\n\"\n";
     p->vardecs->accept(this);
     for(auto& kv: floatConsts)
-        out<<kv.first<<": .float "<<kv.second<<"\n";
+        out<<kv.first<<": .double "<<kv.second<<"\n";
 
     // 3) Construye el map valor→etiqueta
     for(auto& kv: floatConsts)
@@ -538,7 +537,7 @@ void CodeGenVisitor::visit(VarDec* v) {
     bool vf = (v->type=="real");
     for(auto& name: v->vars) {
         isFloatVar[name] = vf;
-        if(vf) out<<name<<": .float 0.0\n";
+        if(vf) out<<name<<": .double 0.0\n";
         else  out<<name<<": .quad 0\n";
     }
 }
@@ -552,87 +551,86 @@ void CodeGenVisitor::visit(Body* b) {
 }
 
 float CodeGenVisitor::visit(NumberExp* e) {
-    out<<"movq $"<<e->value<<", %rax\n";
+    out<<"movq $"<<e->value<<", %rax\n"
+    <<"cvtsi2sd %rax, %xmm0\n";
     return 0;
 }
 
 float CodeGenVisitor::visit(FloatExp* e) {
     auto lbl = literalLabelMap[e->value];
-    out<<"movss "<<lbl<<"(%rip), %xmm0\n";
+    out<<"movsd "<<lbl<<"(%rip), %xmm0\n";
     return 0;
 }
 
 float CodeGenVisitor::visit(IdentifierExp* e) {
     if(isFloatVar[e->name])
-        out<<"movss "<<e->name<<"(%rip), %xmm0\n";
+        out<<"movsd "<<e->name<<"(%rip), %xmm0\n";
     else
         out<<"movq "<<e->name<<"(%rip), %rax\n";
     return 0;
 }
 
 float CodeGenVisitor::visit(BinaryExp* e) {
-    // 1) ¿Alguno es float?
-    bool leftFloat  = dynamic_cast<FloatExp*>(e->left)
-                    || (dynamic_cast<IdentifierExp*>(e->left)
-                        && isFloatVar[static_cast<IdentifierExp*>(e->left)->name]);
-    bool rightFloat = dynamic_cast<FloatExp*>(e->right)
-                    || (dynamic_cast<IdentifierExp*>(e->right)
-                        && isFloatVar[static_cast<IdentifierExp*>(e->right)->name]);
+    // Detectar si alguno es real
+    auto isFloat = [&](Exp* x){
+        return dynamic_cast<FloatExp*>(x)
+            || (dynamic_cast<IdentifierExp*>(x)
+                && isFloatVar[static_cast<IdentifierExp*>(x)->name]);
+    };
+    bool leftF  = isFloat(e->left);
+    bool rightF = isFloat(e->right);
 
-    if (leftFloat || rightFloat) {
-        // --- cargar operando izquierdo en xmm0 como float ---
+    if (leftF || rightF) {
+        // Cargar operando izquierdo en xmm0 (con conversión si es entero)
         if (auto fe = dynamic_cast<FloatExp*>(e->left)) {
-            // literal float
-            fe->accept(this);            // movss LCx(%rip), %xmm0
-        }
-        else if (auto id = dynamic_cast<IdentifierExp*>(e->left)) {
-            if (isFloatVar[id->name]) {
-                out<<"movss "<<id->name<<"(%rip), %xmm0\n";
-            } else {
-                out<<"movq "<<id->name<<"(%rip), %rax\n";
-                out<<"cvtsi2ss %rax, %xmm0\n";
+            fe->accept(this);
+        } else if (auto ie = dynamic_cast<IdentifierExp*>(e->left)) {
+            if (isFloatVar[ie->name])
+                out<<"movsd "<<ie->name<<"(%rip), %xmm0\n";
+            else {
+                out<<"movq "<<ie->name<<"(%rip), %rax\n"
+                   <<"cvtsi2sd %rax, %xmm0\n";
             }
-        }
-        else if (auto ne = dynamic_cast<NumberExp*>(e->left)) {
-            out<<"movq $"<<ne->value<<", %rax\n";
-            out<<"cvtsi2ss %rax, %xmm0\n";
+        } else /* NumberExp */ {
+            auto ne = static_cast<NumberExp*>(e->left);
+            out<<"movq $"<<ne->value<<", %rax\n"
+               <<"cvtsi2sd %rax, %xmm0\n";
         }
 
-        // --- cargar operando derecho en xmm1 como float ---
+        // Cargar operando derecho en xmm1
         if (auto fe = dynamic_cast<FloatExp*>(e->right)) {
-            fe->accept(this);            // movss LCy(%rip), %xmm0
-            out<<"movss %xmm0, %xmm1\n";
-        }
-        else if (auto id = dynamic_cast<IdentifierExp*>(e->right)) {
-            if (isFloatVar[id->name]) {
-                out<<"movss "<<id->name<<"(%rip), %xmm1\n";
-            } else {
-                out<<"movq "<<id->name<<"(%rip), %rax\n";
-                out<<"cvtsi2ss %rax, %xmm1\n";
+            fe->accept(this);
+            out<<"movsd %xmm0, %xmm1\n";
+        } else if (auto ie = dynamic_cast<IdentifierExp*>(e->right)) {
+            if (isFloatVar[ie->name])
+                out<<"movsd "<<ie->name<<"(%rip), %xmm1\n";
+            else {
+                out<<"movq "<<ie->name<<"(%rip), %rax\n"
+                   <<"cvtsi2sd %rax, %xmm1\n";
             }
-        }
-        else if (auto ne = dynamic_cast<NumberExp*>(e->right)) {
-            out<<"movq $"<<ne->value<<", %rax\n";
-            out<<"cvtsi2ss %rax, %xmm1\n";
+        } else {
+            auto ne = static_cast<NumberExp*>(e->right);
+            out<<"movq $"<<ne->value<<", %rax\n"
+               <<"cvtsi2sd %rax, %xmm1\n";
         }
 
-        // --- aplicar la operación en xmm0 ---
+        // Aplicar la operación
         switch(e->op) {
-            case PLUS_OP:  out<<"addss %xmm1, %xmm0\n"; break;
-            case MINUS_OP: out<<"subss %xmm1, %xmm0\n"; break;
-            case MUL_OP:   out<<"mulss %xmm1, %xmm0\n"; break;
-            case DIV_OP:   out<<"divss %xmm1, %xmm0\n"; break;
+            case PLUS_OP:  out<<"addsd %xmm1, %xmm0\n"; break;
+            case MINUS_OP: out<<"subsd %xmm1, %xmm0\n"; break;
+            case MUL_OP:   out<<"mulsd %xmm1, %xmm0\n"; break;
+            case DIV_OP:   out<<"divsd %xmm1, %xmm0\n"; break;
             default: break;
         }
         return 0;
     }
 
-    // --- caso entero puro (igual que antes) ---
+    // Caso entero puro
     e->left->accept(this);
     out<<"pushq %rax\n";
     e->right->accept(this);
-    out<<"movq %rax, %rbx\n";
-    out<<"popq %rax\n";
+    out<<"movq %rax, %rbx\n"
+       <<"popq %rax\n";
     switch(e->op) {
         case PLUS_OP:  out<<"addq %rbx, %rax\n"; break;
         case MINUS_OP: out<<"subq %rbx, %rax\n"; break;
@@ -652,20 +650,20 @@ void CodeGenVisitor::visit(AssignStatement* s) {
         // 1) Evaluar RHS siempre en %xmm0 como float
         if (auto fe = dynamic_cast<FloatExp*>(s->rhs)) {
             // literal real
-            fe->accept(this);                // movss LCx, %xmm0
+            fe->accept(this);                // movsd LCx, %xmm0
         }
         else if (auto ne = dynamic_cast<NumberExp*>(s->rhs)) {
-            // literal entero → cvtsi2ss
+            // literal entero → cvtsi2sd
             out<<"movq $"<<ne->value<<", %rax\n";
-            out<<"cvtsi2ss %rax, %xmm0\n";
+            out<<"cvtsi2sd %rax, %xmm0\n";
         }
         else if (auto ie = dynamic_cast<IdentifierExp*>(s->rhs)) {
             // variable
             if (isFloatVar[ie->name]) {
-                out<<"movss "<<ie->name<<"(%rip), %xmm0\n";
+                out<<"movsd "<<ie->name<<"(%rip), %xmm0\n";
             } else {
                 out<<"movq "<<ie->name<<"(%rip), %rax\n";
-                out<<"cvtsi2ss %rax, %xmm0\n";
+                out<<"cvtsi2sd %rax, %xmm0\n";
             }
         }
         else {
@@ -674,7 +672,7 @@ void CodeGenVisitor::visit(AssignStatement* s) {
         }
 
         // 2) Guardar en la variable float
-        out<<"movss %xmm0, "<<idExp->name<<"(%rip)\n";
+        out<<"movsd %xmm0, "<<idExp->name<<"(%rip)\n";
     }
     else {
         // LHS es entero: todo va por %rax
@@ -701,7 +699,6 @@ void CodeGenVisitor::visit(PrintStatement* s) {
     }
     if (vf) {
         s->e->accept(this);
-        out<<"cvtss2sd %xmm0, %xmm0\n";
         out<<"leaq print_float_fmt(%rip), %rdi\n";
         out<<"movb $1, %al\n";
         out<<"call printf@PLT\n";
