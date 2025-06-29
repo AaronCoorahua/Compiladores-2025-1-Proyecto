@@ -214,8 +214,8 @@ public:
 
 class CodeGenVisitor : public Visitor {
     std::ostream& out;
-    std::map<std::string, float> floatConsts;      // LCx → valor
-    std::map<float, std::string> literalLabelMap;  // valor → LCx
+    std::map<std::string, double> floatConsts;       // LCx → valor
+    std::map<double, std::string> literalLabelMap;
     std::map<std::string, bool> isFloatVar;        // varname → es real?
     int floatLabelCount;
 public:
@@ -251,10 +251,10 @@ public:
 
 // ── en la sección de ConstCollector ──────────────────────────────────
 class ConstCollector : public Visitor {
-    std::map<std::string, float>& floatConsts;
+    std::map<std::string, double>& floatConsts;
     int& floatLabelCount;
 public:
-    ConstCollector(std::map<std::string, float>& fc,int& cnt);
+    ConstCollector(std::map<std::string, double>& fc,int& cnt);
 
     float visit(FloatExp*     ) override;
 
