@@ -52,7 +52,6 @@ VarDec* Parser::parseVarDec(){
     string type = previous->text;
     match(Token::PC);
     // ‘;’
-    cout<<"[DEBUG] VarDec: type="<<type<<" ids_0="<<*ids.begin();
     return new VarDec(type, ids);
 }
 VarDecList* Parser::parseVarDecList(){

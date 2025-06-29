@@ -39,8 +39,15 @@ int main(int argc, const char* argv[]) {
         Program* program = parser.parseProgram();
         cout << "Parsing exitoso" << endl << endl;
         cout << "Iniciando Visitor:" << endl;
+        TYPEVisitor typeVisitor;
+        cout << "TYPE CHECK:" << endl;
+        typeVisitor.visit(program);
+        cout << "Type checking exitoso" << endl << endl;
+
+
         PrintVisitor printVisitor;
         EVALVisitor evalVisitor;
+
         cout << "IMPRIMIR:" << endl;
         printVisitor.imprimir(program);
         cout  << endl;

@@ -1,7 +1,6 @@
-#include "visitor.h"
 #include "exp.h"
+#include "visitor.h"
 #include <iostream>
-#include <unordered_map>
 #include <string>
 #include <iomanip>
 
@@ -226,11 +225,11 @@ float EVALVisitor::visit(FCallExp* e) {
     // ❶ Registrar variable resultado como float
     env.add_var(f->nombre, 0.0f, f->tipo);  // ← asegurarse que es float
 
-    // Guardar el nombre de la función actual
+    // Guardar el nombre de la funcion actual
     string savedFun = currFun;
     currFun = f->nombre;
 
-    // Cargar parámetros
+    // Cargar parametros
     auto pit = f->parametros.begin(), tit = f->tipos.begin();
     auto ait = e->argumentos.begin();
     for (; pit != f->parametros.end(); ++pit, ++tit, ++ait)
@@ -350,30 +349,12 @@ void PrintVisitor::visit(RecordVarDec *rv) {
     cout<<"  "<<rv->atribute << " : " << rv->type << ";" << endl;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void EVALVisitor::visit(ForStatement* s){
     int ini  = s->start->accept(this);
     int fin  = s->end  ->accept(this);
 
     env.add_level();                 // nivel local del bucle
-    env.add_var(s->id, ini, "int");
+    env.add_var(s->id, ini, "integer");
 
     if (!s->downto){
         while (env.lookup(s->id) <= fin){
@@ -421,17 +402,17 @@ void EVALVisitor::visit(TypeDec* t) {
 }
 
 void EVALVisitor::visit(RecordVarDec* rv) {
-    cerr << "[ERROR] visit(RecordVarDec*) no debería ser llamado en EVALVisitor\n";
+    cerr << "[ERROR] visit(RecordVarDec*) no deberia ser llamado en EVALVisitor\n";
     exit(1);
 }
 
 void EVALVisitor::visit(AssignStatement* stm) {
-    float val = stm->rhs->accept(this); // Evalúa RHS
+    float val = stm->rhs->accept(this); // Evalua RHS
 
     if (auto* id = dynamic_cast<IdentifierExp*>(stm->lhs)) {
         string var = id->name;
 
-        // Detectar si estamos en una función y estamos haciendo: nombre_funcion := valor;
+        // Detectar si estamos en una funcion y estamos haciendo: nombre_funcion := valor;
         if (!currFun.empty() && var == currFun) {
             retval = val;
             retcall = true;
@@ -461,7 +442,412 @@ void EVALVisitor::visit(AssignStatement* stm) {
 
 
 
+
+
+//  --------TYPECHECKER_VISITOR---------
+
+float TYPEVisitor::visit(BinaryExp* e) {
+    e->left->accept(this);
+    e->right->accept(this);
+
+    string t1 = e->left->type;
+    string t2 = e->right->type;
+    switch (e->op) {
+        case PLUS_OP:
+        case MINUS_OP:
+        case MUL_OP:
+        case DIV_OP:
+            if ((t1 == "integer" || t1 == "real") && (t2 == "integer" || t2 == "real")) {
+                e->type = (t1 == "real" || t2 == "real") ? "real" : "integer";
+            } else {
+                cerr << "[TYPE ERROR] Operacion aritmetica invalida entre '" << t1 << "' y '" << t2 << "'\n";
+                exit(1);
+            }
+            break;
+
+        case LT_OP:
+        case LE_OP:
+        case EQ_OP:
+        case GT_OP:
+        case GE_OP:
+            if ((t1 == "integer" || t1 == "real") && (t2 == "integer" || t2 == "real")) {
+                e->type = "bool";
+            } else {
+                cerr << "[TYPE ERROR] Comparacion invalida entre '" << t1 << "' y '" << t2 << "'\n";
+                exit(1);
+            }
+            break;
+
+        default:
+            cerr << "[TYPE ERROR] Operador desconocido en BinaryExp\n";
+            exit(1);
+    }
+
+    return 0;
+}
+
+
+
+
+
+void TYPEVisitor::visit(AssignStatement* stm) {
+    auto* id = dynamic_cast<IdentifierExp*>(stm->lhs);
+
+    if (!id) {
+        cerr << "[TYPE ERROR] Asignacion invalida: el lado izquierdo no es una variable simple\n";
+        exit(1);
+    }
+
+    stm->rhs->accept(this);
+
+    // Caso especial: asignacion al nombre de la funcion → es valor de retorno
+    if (id->name == currFun) {
+        if (fdecs.count(currFun) == 0) {
+            cerr << "[TYPE ERROR] Funcion no declarada: " << currFun << "\n";
+            exit(1);
+        }
+        string expected = fdecs[currFun]->tipo;
+        if (stm->rhs->type != expected) {
+            cerr << "[TYPE ERROR] Tipo incorrecto al asignar retorno de " << currFun
+                 << ": se esperaba " << expected << ", se recibio " << stm->rhs->type << "\n";
+            exit(1);
+        }
+        return;
+    }
+
+    if (!env.check(id->name)) {
+        cerr << "[TYPE ERROR] Variable no declarada: " << id->name << "\n";
+        exit(1);
+    }
+
+    if (env.lookup_type(id->name) != stm->rhs->type) {
+        cerr << "[TYPE ERROR] Tipos incompatibles en asignacion a " << id->name << "\n";
+        exit(1);
+    }
+}
+
+
+
+void TYPEVisitor::visit(Program * p) {
+    env.add_level();
+    if(p->typeDecList){
+        p->typeDecList->accept(this);
+    }
+    if(p->vardecs){
+        p->vardecs->accept(this);
+    }
+    if(p->fundecs){
+        p->fundecs->accept(this);
+    }
+    if (p->mainBody) {
+        p->mainBody->accept(this);
+    }
+    env.remove_level();
+}
+
+float TYPEVisitor::visit(NumberExp* e) {
+    e->type = "integer";
+    return 0;
+}
+
+
+float TYPEVisitor::visit(FloatExp *e) {
+    e->type = "real";
+    return 0;
+}
+
+float TYPEVisitor::visit(BoolExp *e) {
+    e->type = "bool";
+    return 0;
+}
+
+float TYPEVisitor::visit(IdentifierExp* e) {
+    if (!env.check(e->name)) {
+        cout<<"IdentifierExp"<<endl;
+        cerr << "[TYPE ERROR] Variable no declarada: " << e->name << endl;
+        exit(1);
+    }
+    e->type = env.lookup_type(e->name);
+    return 0;
+}
+
+
+float TYPEVisitor::visit(IFExp* e) {
+    e->cond->accept(this);
+    e->left->accept(this);
+    e->right->accept(this);
+    if (e->cond->type != "bool") {
+        cerr << "[TYPE ERROR] La condicion de ifexp debe ser bool\n";
+        exit(1);
+    }
+
+    if (e->left->type != e->right->type) {
+        cerr << "[TYPE ERROR] Los valores de then y else deben tener el mismo tipo\n";
+        exit(1);
+    }
+
+    e->type = e->left->type;
+    return 0;
+}
+
+
+float TYPEVisitor::visit(FCallExp* e) {
+    if (!fdecs.count(e->nombre)) {
+        cerr << "[TYPE ERROR] Funcion no definida: " << e->nombre << endl;
+        exit(1);
+    }
+
+    FunDec* f = fdecs[e->nombre];
+
+    if (f->parametros.size() != e->argumentos.size()) {
+        cerr << "[TYPE ERROR] Numero incorrecto de argumentos en llamada a " << e->nombre << endl;
+        exit(1);
+    }
+    auto arg_it = e->argumentos.begin();
+    auto type_it = f->tipos.begin();
+    for (; arg_it != e->argumentos.end(); ++arg_it, ++type_it) {
+        (*arg_it)->accept(this);  // Evalua tipo del argumento
+        if ((*arg_it)->type != *type_it) {
+            cerr << "[TYPE ERROR] Tipo incorrecto en llamada a " << e->nombre
+                 << ": se esperaba '" << *type_it << "', se recibio '" << (*arg_it)->type << "'\n";
+            exit(1);
+        }
+    }
+    e->type = f->tipo;
+    return 0;
+}
+
+
+float TYPEVisitor::visit(RecordTIdentifierExp* e) {
+    if (!env.has_field(e->base, e->field)) {
+        cerr << "[TYPE ERROR] Campo no declarado: " << e->base << "." << e->field << endl;
+        exit(1);
+    }
+
+    e->type = env.get_field_type(e->base, e->field);
+    return 0;
+}
+
+
+void TYPEVisitor::visit(PrintStatement* s) {
+    s->e->accept(this);  // Verifica la expresion
+
+    if (s->e->type != "integer" && s->e->type != "real" && s->e->type != "bool") {
+        cerr << "[TYPE ERROR] writeln(...) solo acepta int, float o bool\n";
+        exit(1);
+    }
+}
+
+
+void TYPEVisitor::visit(IfStatement* s) {
+    s->condition->accept(this);
+    if (s->condition->type != "bool") {
+        cerr << "[TYPE ERROR] La condicion del if debe ser de tipo bool\n";
+        exit(1);
+    }
+
+    s->then->accept(this);
+    if (s->els) s->els->accept(this);
+}
+
+
+void TYPEVisitor::visit(ForStatement* s) {
+    s->start->accept(this);
+    s->end->accept(this);
+
+    if (s->start->type != "integer" || s->end->type != "integer") {
+        cerr << "[TYPE ERROR] Las expresiones de inicio y fin del for deben ser int\n";
+        exit(1);
+    }
+
+    env.add_level();  // variable local del for
+    env.add_var(s->id, "integer");
+    s->body->accept(this);
+    env.remove_level();
+}
+
+
+void TYPEVisitor::visit(WhileStatement* s) {
+    s->condition->accept(this);
+
+    if (s->condition->type != "bool") {
+        cerr << "[TYPE ERROR] La condicion del while debe ser bool\n";
+        exit(1);
+    }
+
+    s->b->accept(this);
+}
+
+
+void TYPEVisitor::visit(ReturnStatement* s) {
+    if (!s->e) return;
+
+    s->e->accept(this);
+
+    if (currFun.empty()) {
+        cerr << "[TYPE ERROR] return() fuera de funcion\n";
+        exit(1);
+    }
+
+    string expected = fdecs[currFun]->tipo;
+    string actual   = s->e->type;
+
+    if (expected != actual) {
+        cerr << "[TYPE ERROR] return() incompatible en funcion " << currFun
+             << ": se esperaba " << expected << ", se obtuvo " << actual << "\n";
+        exit(1);
+    }
+}
+
+
+void TYPEVisitor::visit(RecordTAssignStatement* s) {
+    // Verificar que la variable del record existe
+    if (!env.check(s->base)) {
+        cout<<"RecordTAssignStatement"<<endl;
+        cerr << "[TYPE ERROR] Variable no declarada: " << s->base << "\n";
+        exit(1);
+    }
+
+    // Verificar que el campo existe dentro del record
+    if (!env.has_field(s->base, s->field)) {
+        cerr << "[TYPE ERROR] Campo no declarado: " << s->base << "." << s->field << "\n";
+        exit(1);
+    }
+
+    // Evaluar la expresion del valor
+    s->val->accept(this);
+
+    string expected = env.get_field_type(s->base, s->field);
+    string actual = s->val->type;
+
+
+    // Validar que se haya asignado el tipo correctamente
+    if (actual.empty()) {
+        cerr << "[TYPE ERROR] La expresion del valor no tiene tipo asignado\n";
+        exit(1);
+    }
+
+    // Comparar tipos
+    if (expected != actual) {
+        cerr << "[TYPE ERROR] Asignacion incompatible a campo " << s->base << "." << s->field
+             << ": se esperaba " << expected << ", se recibio " << actual << "\n";
+        exit(1);
+    }
+}
+
+
+
+void TYPEVisitor::visit(VarDec* vd) {
+    for (auto& nombre : vd->vars) {
+        if (type_registry.count(vd->type)) {
+            // Es un tipo RECORD
+            env.add_record(nombre, type_registry[vd->type],  vd->type);
+        } else {
+            // Variable simple
+            env.add_var(nombre,  vd->type);
+        }
+    }
+}
+
+
+
+
+
+void TYPEVisitor::visit(VarDecList* vdl) {
+    for (auto* vd : vdl->vardecs) {
+        vd->accept(this);
+    }
+}
+
+
+
+
+void TYPEVisitor::visit(StatementList* sl) {
+    for (auto* s : sl->stms) {
+        s->accept(this);
+    }
+}
+
+
+void TYPEVisitor::visit(Body* b) {
+    env.add_level();
+    if (b->vardecs) b->vardecs->accept(this);
+    if (b->slist) b->slist->accept(this);
+    env.remove_level();
+}
+
+
+void TYPEVisitor::visit(TypeDecList* tdl) {
+    for (auto* td : tdl->typedecs) {
+        td->accept(this);
+    }
+}
+
+
+void TYPEVisitor::visit(TypeDec* td) {
+    current_fields.clear();
+    for (auto* campo : td->atributs) {
+        campo->accept(this);
+    }
+
+    type_registry[td->name] = td->atributs;
+}
+
+void TYPEVisitor::visit(RecordVarDec* rv) {
+    string tipo = rv->type;
+
+
+    if (current_fields.count(rv->atribute)) {
+        cerr << "[TYPE ERROR] Campo redeclarado en record: " << rv->atribute << "\n";
+        exit(1);
+    }
+
+    current_fields[rv->atribute] = tipo;
+}
+
+
+
+void TYPEVisitor::visit(FunDec* f) {
+    fdecs[f->nombre] = f;
+    env.add_level();
+
+    // registrar parametros
+    auto pit = f->parametros.begin();
+    auto tit = f->tipos.begin();
+
+    for (; pit != f->parametros.end(); ++pit, ++tit) {
+        env.add_var(*pit, *tit);
+    }
+
+    currFun = f->nombre;
+    f->cuerpo->accept(this);
+    currFun = "";
+    env.remove_level();
+}
+
+
+
+
+void TYPEVisitor::visit(FunDecList* fdl) {
+
+    for (auto* fd : fdl->Fundecs) {
+        if (fdecs.count(fd->nombre)) {
+            cerr << "[TYPE ERROR] Funcion redeclarada: " << fd->nombre << "\n";
+            exit(1);
+        }
+        fdecs[fd->nombre] = fd;
+    }
+
+    for (auto* fd : fdl->Fundecs) {
+        fd->accept(this);
+    }
+}
+
+
+
+
 ConstCollector::ConstCollector(std::map<std::string, double>& fc,int& cnt): floatConsts(fc), floatLabelCount(cnt) {}
+
 
 float ConstCollector::visit(FloatExp* e) {
     std::string lbl = "LC" + std::to_string(floatLabelCount++);

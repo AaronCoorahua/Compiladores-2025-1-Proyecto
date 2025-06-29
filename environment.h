@@ -55,10 +55,22 @@ public:
         type_levels.back()[var] = type;
     }
 
-    void add_var(string var, string type) {
+    bool add_var(string var, string type) {
+        if (levels.empty()) {
+            cout << "Environment sin niveles: no se pueden agregar variables" << endl;
+            exit(0);
+        }
+
+        if (levels.back().count(var)) {
+            return false;
+        }
+
         levels.back()[var] = 0;
         type_levels.back()[var] = type;
+        return true;
     }
+
+
 
     bool remove_level() {
         if (!levels.empty()) {
@@ -109,7 +121,10 @@ public:
 
     //----- STRUCTS NUEVOS -----//
     void add_record(string name, const vector<RecordVarDec*>& fields, string record_type) {
+        //cout << "[DEBUG] Registrando record: " << name << " con tipo base: " << record_type << endl;
         for (auto* f : fields) {
+            //cout << "[DEBUG] Campo recibido: " << f->atribute << " con tipo: [" << f->type << "]\n";
+
             record_values[name][f->atribute] = 0.0;
             record_types[name][f->atribute] = f->type;
         }
@@ -142,8 +157,12 @@ public:
             cerr << "Campo no encontrado: " << record << "." << field << endl;
             exit(1);
         }
-        return record_types[record][field];
+
+        string t = record_types.at(record).at(field);
+
+        return t;
     }
+
 
     void debug_print() {
         cout << "---- ENTORNO ACTUAL ----\n";

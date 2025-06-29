@@ -30,8 +30,6 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/inputs/input.s" beforeDir="false" afterPath="$PROJECT_DIR$/inputs/input.s" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/inputs/inputflo1.txt" beforeDir="false" afterPath="$PROJECT_DIR$/inputs/inputflo1.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/visitor.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/visitor.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/visitor.h" beforeDir="false" afterPath="$PROJECT_DIR$/visitor.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -57,6 +55,9 @@
     &quot;accountId&quot;: &quot;8c716073-acb0-49c8-9043-bd3753c70148&quot;
   }
 }</component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 0
@@ -109,7 +110,7 @@
       <option name="presentableId" value="Default" />
       <updated>1751145695491</updated>
       <workItem from="1751145697264" duration="7728000" />
-      <workItem from="1751208420211" duration="12338000" />
+      <workItem from="1751208420211" duration="14910000" />
     </task>
     <servers />
   </component>

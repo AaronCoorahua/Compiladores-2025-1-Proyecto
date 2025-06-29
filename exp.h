@@ -21,6 +21,7 @@ enum BinaryOp { PLUS_OP, MINUS_OP, MUL_OP, DIV_OP,
 /* ===================================================================== */
 class Exp {
 public:
+    string type;
     virtual float  accept(Visitor*) = 0;
     virtual ~Exp() = default;
     static string binopToChar(BinaryOp);
@@ -39,7 +40,6 @@ public:
 class BinaryExp : public Exp {
 public:
     Exp *left, *right;
-    string type;
     BinaryOp op;
     BinaryExp(Exp*, Exp*, BinaryOp);
     ~BinaryExp();
