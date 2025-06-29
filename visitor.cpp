@@ -520,11 +520,14 @@ void CodeGenVisitor::generate(Program* p) {
 
     // 4) Sección .text
     out<<".text\n"
-       <<".globl main\n"
-       <<"main:\n";
+    <<".globl main\n"
+    <<"main:\n"
+    <<"pushq %rbp\n"
+    <<"movq %rsp, %rbp\n";
     p->mainBody->accept(this);
-    out<<"movq $0, %rax\n";
-    out<<"ret\n";
+    out<<"movq $0, %rax\n"
+    <<"popq %rbp\n"
+    <<"ret\n";
 }
 
 void CodeGenVisitor::visit(VarDecList* v) {
@@ -630,13 +633,13 @@ void CodeGenVisitor::visit(PrintStatement* s) {
         s->e->accept(this);
         out<<"cvtss2sd %xmm0, %xmm0\n";
         out<<"leaq print_float_fmt(%rip), %rdi\n";
-        out<<"xor %rax, %rax\n";
+        out<<"movb $1, %al\n";
         out<<"call printf@PLT\n";
     } else {
         s->e->accept(this);
         out<<"movq %rax, %rsi\n";
         out<<"leaq print_int_fmt(%rip), %rdi\n";
-        out<<"xor %rax, %rax\n";
+        out<<"movb $1, %al\n";
         out<<"call printf@PLT\n";
     }
 }
