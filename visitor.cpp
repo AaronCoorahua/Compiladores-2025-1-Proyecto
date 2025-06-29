@@ -440,3 +440,150 @@ void EVALVisitor::visit(AssignStatement* stm) {
 
     cerr << "[ERROR] AssignStatement con lhs no reconocido" << endl;
 }
+
+
+CodeGenVisitor::CodeGenVisitor(std::ostream& output)
+  : out(output), floatLabelCount(0) {}
+
+std::string CodeGenVisitor::newFloatLabel() {
+    return "LC" + std::to_string(floatLabelCount++);
+}
+
+void CodeGenVisitor::generate(Program* p) {
+
+    ConstCollector collector(floatConsts, floatLabelCount);
+    p->vardecs->accept(&collector);
+    p->mainBody->accept(&collector);
+
+    out<<".data\n";
+    out<<"print_int_fmt: .string \"%ld\\n\"\n";
+    out<<"print_float_fmt: .string \"%f\\n\"\n";
+    p->vardecs->accept(this);
+    for(auto& kv: floatConsts)
+        out<<kv.first<<": .float "<<kv.second<<"\n";
+    out<<".text\n";
+    out<<".globl main\n";
+    out<<"main:\n";
+    p->mainBody->accept(this);
+    out<<"movq $0, %rax\n";
+    out<<"ret\n";
+}
+
+void CodeGenVisitor::visit(VarDecList* v) {
+    for(auto* vd: v->vardecs) vd->accept(this);
+}
+
+void CodeGenVisitor::visit(VarDec* v) {
+    bool vf = (v->type=="real");
+    for(auto& name: v->vars) {
+        isFloatVar[name] = vf;
+        if(vf) out<<name<<": .float 0.0\n";
+        else  out<<name<<": .quad 0\n";
+    }
+}
+
+void CodeGenVisitor::visit(StatementList* s) {
+    for(auto* st: s->stms) st->accept(this);
+}
+
+void CodeGenVisitor::visit(Body* b) {
+    b->slist->accept(this);
+}
+
+float CodeGenVisitor::visit(NumberExp* e) {
+    out<<"movq $"<<e->value<<", %rax\n";
+    return 0;
+}
+
+float CodeGenVisitor::visit(FloatExp* e) {
+    auto lbl = newFloatLabel();
+    floatConsts[lbl] = e->value;
+    out<<"movss "<<lbl<<"(%rip), %xmm0\n";
+    return 0;
+}
+
+float CodeGenVisitor::visit(IdentifierExp* e) {
+    if(isFloatVar[e->name])
+        out<<"movss "<<e->name<<"(%rip), %xmm0\n";
+    else
+        out<<"movq "<<e->name<<"(%rip), %rax\n";
+    return 0;
+}
+
+float CodeGenVisitor::visit(BinaryExp* e) {
+    bool leftIsFloat  = dynamic_cast<FloatExp*>(e->left) != nullptr;
+    if(!leftIsFloat) {
+        if(auto id = dynamic_cast<IdentifierExp*>(e->left))
+            leftIsFloat = isFloatVar[id->name];
+    }
+    bool rightIsFloat = dynamic_cast<FloatExp*>(e->right) != nullptr;
+    if(!rightIsFloat) {
+        if(auto id = dynamic_cast<IdentifierExp*>(e->right))
+            rightIsFloat = isFloatVar[id->name];
+    }
+    bool vf = leftIsFloat || rightIsFloat;
+
+    if (vf) {
+        // --- Rama float ---
+        e->left->accept(this);             // carga izquierdo en %xmm0
+        out<<"movss %xmm0, %xmm1\n";        // lo guardo en xmm1
+        e->right->accept(this);            // carga derecho en %xmm0
+        switch(e->op) {
+            case PLUS_OP:  out<<"addss %xmm1, %xmm0\n"; break;
+            case MINUS_OP: out<<"subss %xmm1, %xmm0\n"; break;
+            case MUL_OP:   out<<"mulss %xmm1, %xmm0\n"; break;
+            case DIV_OP:   out<<"divss %xmm1, %xmm0\n"; break;
+            default: break;
+        }
+        return 0;
+    }
+
+    // --- Rama entera (igual que antes) ---
+    e->left->accept(this);
+    out<<"pushq %rax\n";
+    e->right->accept(this);
+    out<<"movq %rax, %rbx\n";
+    out<<"popq %rax\n";
+    switch(e->op) {
+        case PLUS_OP:  out<<"addq %rbx, %rax\n"; break;
+        case MINUS_OP: out<<"subq %rbx, %rax\n"; break;
+        case MUL_OP:   out<<"imulq %rbx, %rax\n"; break;
+        case DIV_OP:   out<<"cqto\nidivq %rbx\n"; break;
+        default: break;
+    }
+    return 0;
+}
+
+void CodeGenVisitor::visit(AssignStatement* s) {
+    auto* id = dynamic_cast<IdentifierExp*>(s->lhs);
+    bool vf = isFloatVar[id->name];
+    s->rhs->accept(this);
+    if(vf) out<<"movss %xmm0, "<<id->name<<"(%rip)\n";
+    else   out<<"movq %rax, "<<id->name<<"(%rip)\n";
+}
+
+void CodeGenVisitor::visit(PrintStatement* s) {
+    bool vf = false;
+    if (dynamic_cast<FloatExp*>(s->e)) {
+        vf = true;
+    } else if (auto id = dynamic_cast<IdentifierExp*>(s->e)) {
+        vf = isFloatVar[id->name];
+    }
+    if (vf) {
+        s->e->accept(this);
+        out<<"cvtss2sd %xmm0, %xmm0\n";
+        out<<"leaq print_float_fmt(%rip), %rdi\n";
+        out<<"xor %rax, %rax\n";
+        out<<"call printf@PLT\n";
+    } else {
+        s->e->accept(this);
+        out<<"movq %rax, %rsi\n";
+        out<<"leaq print_int_fmt(%rip), %rdi\n";
+        out<<"xor %rax, %rax\n";
+        out<<"call printf@PLT\n";
+    }
+}
+
+void CodeGenVisitor::visit(Program* p) {
+    generate(p);
+}

@@ -2,8 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Compiladores-2025-1-Proyecto.iml" filepath="$PROJECT_DIR$/.idea/Compiladores-2025-1-Proyecto.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/proyec.iml" filepath="$PROJECT_DIR$/.idea/proyec.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/descompri.iml" filepath="$PROJECT_DIR$/.idea/descompri.iml" />
     </modules>
   </component>
 </project>

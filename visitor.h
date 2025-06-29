@@ -145,4 +145,81 @@ public:
     void visit(FunDecList*)      override;
 };
 
+#include <ostream>
+#include <string>
+
+class CodeGenVisitor : public Visitor {
+    std::ostream& out;
+    std::unordered_map<std::string, float> floatConsts;
+    std::unordered_map<std::string, bool> isFloatVar;
+    int floatLabelCount;
+    std::string newFloatLabel();
+public:
+    explicit CodeGenVisitor(std::ostream& output);
+    void generate(Program* p);
+    float visit(BinaryExp*         ) override;
+    float visit(NumberExp*         ) override;
+    float visit(FloatExp*          ) override;
+    float visit(BoolExp*           ) override { return 0; }
+    float visit(IdentifierExp*     ) override;
+    float visit(IFExp*             ) override { return 0; }
+    float visit(FCallExp*          ) override { return 0; }
+    float visit(RecordTIdentifierExp*) override { return 0; }
+    void  visit(AssignStatement*   ) override;
+    void  visit(PrintStatement*    ) override;
+    void  visit(IfStatement*       ) override {}
+    void  visit(ForStatement*      ) override {}
+    void  visit(WhileStatement*    ) override {}
+    void  visit(ReturnStatement*   ) override {}
+    void  visit(RecordTAssignStatement*) override {}
+    void  visit(VarDec*            ) override;
+    void  visit(VarDecList*        ) override;
+    void  visit(StatementList*     ) override;
+    void  visit(Body*              ) override;
+    void  visit(TypeDecList*       ) override {}
+    void  visit(TypeDec*           ) override {}
+    void  visit(RecordVarDec*      ) override {}
+    void  visit(FunDec*            ) override {}
+    void  visit(FunDecList*        ) override {}
+    void  visit(Program*           ) override;
+};
+
+
+
+class ConstCollector : public Visitor {
+    std::unordered_map<std::string, float>& floatConsts;
+    int& floatLabelCount;
+public:
+    ConstCollector(std::unordered_map<std::string, float>& fc,int& cnt): floatConsts(fc), floatLabelCount(cnt) {}
+    float visit(FloatExp* e) override {
+        std::string lbl = "LC" + std::to_string(floatLabelCount++);
+        floatConsts[lbl] = e->value;
+        return 0;
+    }
+    // el resto no hace nada
+    float visit(BinaryExp*)         override { return 0; }
+    float visit(NumberExp*)         override { return 0; }
+    float visit(IdentifierExp*)     override { return 0; }
+    float visit(BoolExp*)           override { return 0; }
+    float visit(IFExp*)             override { return 0; }
+    float visit(FCallExp*)          override { return 0; }
+    float visit(RecordTIdentifierExp*) override { return 0; }
+    void  visit(AssignStatement*)   override {}
+    void  visit(PrintStatement*)    override {}
+    void  visit(IfStatement*)       override {}
+    void  visit(ForStatement*)      override {}
+    void  visit(WhileStatement*)    override {}
+    void  visit(ReturnStatement*)   override {}
+    void  visit(RecordTAssignStatement*) override {}
+    void  visit(VarDec*)            override {}
+    void  visit(VarDecList*)        override {}
+    void  visit(StatementList*)     override {}
+    void  visit(Body*)              override {}
+    void  visit(TypeDecList*)       override {}
+    void  visit(TypeDec*)           override {}
+    void  visit(RecordVarDec*)      override {}
+    void  visit(FunDec*)            override {}
+    void  visit(FunDecList*)        override {}
+    void  visit(Program*)           override {}
+};
 #endif /* VISITOR_H */
