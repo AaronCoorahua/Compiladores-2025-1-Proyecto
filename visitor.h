@@ -131,6 +131,7 @@ public:
     void visit(ForStatement*)  override;
     void visit(WhileStatement*)  override;
     void visit(ReturnStatement*) override;
+
     void visit(RecordTAssignStatement*) override;
 
     void visit(VarDec*)          override;
@@ -143,6 +144,51 @@ public:
     /* funciones */
     void visit(FunDec*)          override;
     void visit(FunDecList*)      override;
+};
+
+class TYPEVisitor : public Visitor {
+    Environment env;
+    std::unordered_map<std::string, FunDec*> fdecs;
+    std::unordered_map<std::string, vector<RecordVarDec*>> type_registry;
+
+    std::unordered_map<std::string, std::string> current_fields;
+    string currFun;
+public:
+    TYPEVisitor() : currFun("") {}
+
+    void visit(Program*) override;
+
+    // expresiones
+    float visit(BinaryExp*) override;
+    float visit(NumberExp*) override;
+    float visit(FloatExp*) override;
+    float visit(BoolExp*) override;
+    float visit(IdentifierExp*) override;
+    float visit(IFExp*) override;
+    float visit(FCallExp*) override;
+    float visit(RecordTIdentifierExp*) override;
+
+    // sentencias
+    void visit(AssignStatement*) override;
+    void visit(PrintStatement*) override;
+    void visit(IfStatement*) override;
+    void visit(ForStatement*) override;
+    void visit(WhileStatement*) override;
+    void visit(ReturnStatement*) override;
+    void visit(RecordTAssignStatement*) override;
+
+    // bloques y declaraciones
+    void visit(VarDec*) override;
+    void visit(VarDecList*) override;
+    void visit(StatementList*) override;
+    void visit(Body*) override;
+    void visit(TypeDecList*) override;
+    void visit(TypeDec*) override;
+    void visit(RecordVarDec*) override;
+
+    // funciones
+    void visit(FunDec*) override;
+    void visit(FunDecList*) override;
 };
 
 #endif /* VISITOR_H */
