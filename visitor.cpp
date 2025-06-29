@@ -645,12 +645,52 @@ float CodeGenVisitor::visit(BinaryExp* e) {
 
 
 void CodeGenVisitor::visit(AssignStatement* s) {
-    auto* id = dynamic_cast<IdentifierExp*>(s->lhs);
-    bool vf = isFloatVar[id->name];
-    s->rhs->accept(this);
-    if(vf) out<<"movss %xmm0, "<<id->name<<"(%rip)\n";
-    else   out<<"movq %rax, "<<id->name<<"(%rip)\n";
+    auto idExp = dynamic_cast<IdentifierExp*>(s->lhs);
+    bool lhsIsFloat = isFloatVar[idExp->name];
+
+    if (lhsIsFloat) {
+        // 1) Evaluar RHS siempre en %xmm0 como float
+        if (auto fe = dynamic_cast<FloatExp*>(s->rhs)) {
+            // literal real
+            fe->accept(this);                // movss LCx, %xmm0
+        }
+        else if (auto ne = dynamic_cast<NumberExp*>(s->rhs)) {
+            // literal entero → cvtsi2ss
+            out<<"movq $"<<ne->value<<", %rax\n";
+            out<<"cvtsi2ss %rax, %xmm0\n";
+        }
+        else if (auto ie = dynamic_cast<IdentifierExp*>(s->rhs)) {
+            // variable
+            if (isFloatVar[ie->name]) {
+                out<<"movss "<<ie->name<<"(%rip), %xmm0\n";
+            } else {
+                out<<"movq "<<ie->name<<"(%rip), %rax\n";
+                out<<"cvtsi2ss %rax, %xmm0\n";
+            }
+        }
+        else {
+            // expresiones compuestas (BinaryExp, etc.)
+            s->rhs->accept(this);            // las BinaryExp ya dejan el resultado en %xmm0
+        }
+
+        // 2) Guardar en la variable float
+        out<<"movss %xmm0, "<<idExp->name<<"(%rip)\n";
+    }
+    else {
+        // LHS es entero: todo va por %rax
+        if (auto ne = dynamic_cast<NumberExp*>(s->rhs)) {
+            out<<"movq $"<<ne->value<<", %rax\n";
+        }
+        else if (auto ie = dynamic_cast<IdentifierExp*>(s->rhs)) {
+            out<<"movq "<<ie->name<<"(%rip), %rax\n";
+        }
+        else {
+            s->rhs->accept(this);            // BinaryExp deja en %rax para enteros
+        }
+        out<<"movq %rax, "<<idExp->name<<"(%rip)\n";
+    }
 }
+
 
 void CodeGenVisitor::visit(PrintStatement* s) {
     bool vf = false;

@@ -5,6 +5,7 @@ a: .float 0.0
 b: .float 0.0
 c: .float 0.0
 LC0: .float 4.5
+LC1: .float 1.3
 .text
 .globl main
 main:
@@ -12,7 +13,7 @@ pushq %rbp
 movq %rsp, %rbp
 movss LC0(%rip), %xmm0
 movss %xmm0, a(%rip)
-movq $1, %rax
+movss LC1(%rip), %xmm0
 movss %xmm0, b(%rip)
 movss a(%rip), %xmm0
 movss b(%rip), %xmm1
