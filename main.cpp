@@ -47,12 +47,17 @@ int main(int argc, const char* argv[]) {
 
         PrintVisitor printVisitor;
         EVALVisitor evalVisitor;
-//        cout << "IMPRIMIR:" << endl;
-//        printVisitor.imprimir(program);
-//        cout  << endl;
-//        cout << "EJECUTAR:" << endl;
-//        evalVisitor.ejecutar(program);
-//
+
+        cout << "IMPRIMIR:" << endl;
+        printVisitor.imprimir(program);
+        cout  << endl;
+        cout << "EJECUTAR:" << endl;
+        evalVisitor.ejecutar(program);
+        std::ofstream asmOut("input.s");
+        CodeGenVisitor codeGen(asmOut);
+        codeGen.generate(program);
+        asmOut.close();
+        std::cout << ">> Ensamblador generado en input.s" << std::endl;
         delete program;
     } catch (const exception& e) {
         cout << "Error durante la ejecución: " << e.what() << endl;

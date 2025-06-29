@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <iomanip>
+
 using namespace std;
 
 /* ─────────────────── Despachos accept() generados ──────────────────── */
@@ -347,7 +348,6 @@ void PrintVisitor::visit(TypeDec* td) {
 void PrintVisitor::visit(RecordVarDec *rv) {
     cout<<"  "<<rv->atribute << " : " << rv->type << ";" << endl;
 }
-
 
 void EVALVisitor::visit(ForStatement* s){
     int ini  = s->start->accept(this);
@@ -839,4 +839,260 @@ void TYPEVisitor::visit(FunDecList* fdl) {
     for (auto* fd : fdl->Fundecs) {
         fd->accept(this);
     }
+}
+ConstCollector::ConstCollector(std::map<std::string, float>& fc,
+                               int& cnt): floatConsts(fc), floatLabelCount(cnt) {}
+
+float ConstCollector::visit(FloatExp* e) {
+    std::string lbl = "LC" + std::to_string(floatLabelCount++);
+    floatConsts[lbl] = e->value;
+    return 0;
+}
+
+float ConstCollector::visit(BinaryExp* e) {
+    e->left->accept(this);
+    e->right->accept(this);
+    return 0;
+}
+
+void ConstCollector::visit(AssignStatement* s) {
+    s->rhs->accept(this);
+}
+
+void ConstCollector::visit(PrintStatement* s) {
+    s->e->accept(this);
+}
+
+void ConstCollector::visit(StatementList* s) {
+    for (auto* st : s->stms)
+        st->accept(this);
+}
+
+void ConstCollector::visit(Body* b) {
+    b->slist->accept(this);
+}
+
+void ConstCollector::visit(Program* p) {
+    p->vardecs->accept(this);
+    p->mainBody->accept(this);
+}
+
+
+CodeGenVisitor::CodeGenVisitor(std::ostream& output): out(output), floatLabelCount(0) {}
+
+void CodeGenVisitor::generate(Program* p) {
+
+    ConstCollector collector(floatConsts, floatLabelCount);
+    collector.visit(p);
+
+    // 2) Ahora sí imprimimos .data con formatos, variables y literales
+    out<<".data\n";
+    out<<"print_int_fmt: .string \"%ld\\n\"\n";
+    out<<"print_float_fmt: .string \"%f\\n\"\n";
+    p->vardecs->accept(this);
+    for(auto& kv: floatConsts)
+        out<<kv.first<<": .float "<<kv.second<<"\n";
+
+    // 3) Construye el map valor→etiqueta
+    for(auto& kv: floatConsts)
+        literalLabelMap[kv.second] = kv.first;
+
+    // 4) Sección .text
+    out<<".text\n"
+    <<".globl main\n"
+    <<"main:\n"
+    <<"pushq %rbp\n"
+    <<"movq %rsp, %rbp\n";
+    p->mainBody->accept(this);
+    out<<"movq $0, %rax\n"
+    <<"popq %rbp\n"
+    <<"ret\n";
+}
+
+void CodeGenVisitor::visit(VarDecList* v) {
+    for(auto* vd: v->vardecs) vd->accept(this);
+}
+
+void CodeGenVisitor::visit(VarDec* v) {
+    bool vf = (v->type=="real");
+    for(auto& name: v->vars) {
+        isFloatVar[name] = vf;
+        if(vf) out<<name<<": .float 0.0\n";
+        else  out<<name<<": .quad 0\n";
+    }
+}
+
+void CodeGenVisitor::visit(StatementList* s) {
+    for(auto* st: s->stms) st->accept(this);
+}
+
+void CodeGenVisitor::visit(Body* b) {
+    b->slist->accept(this);
+}
+
+float CodeGenVisitor::visit(NumberExp* e) {
+    out<<"movq $"<<e->value<<", %rax\n";
+    return 0;
+}
+
+float CodeGenVisitor::visit(FloatExp* e) {
+    auto lbl = literalLabelMap[e->value];
+    out<<"movss "<<lbl<<"(%rip), %xmm0\n";
+    return 0;
+}
+
+float CodeGenVisitor::visit(IdentifierExp* e) {
+    if(isFloatVar[e->name])
+        out<<"movss "<<e->name<<"(%rip), %xmm0\n";
+    else
+        out<<"movq "<<e->name<<"(%rip), %rax\n";
+    return 0;
+}
+
+float CodeGenVisitor::visit(BinaryExp* e) {
+    // 1) ¿Alguno es float?
+    bool leftFloat  = dynamic_cast<FloatExp*>(e->left)
+                    || (dynamic_cast<IdentifierExp*>(e->left)
+                        && isFloatVar[static_cast<IdentifierExp*>(e->left)->name]);
+    bool rightFloat = dynamic_cast<FloatExp*>(e->right)
+                    || (dynamic_cast<IdentifierExp*>(e->right)
+                        && isFloatVar[static_cast<IdentifierExp*>(e->right)->name]);
+
+    if (leftFloat || rightFloat) {
+        // --- cargar operando izquierdo en xmm0 como float ---
+        if (auto fe = dynamic_cast<FloatExp*>(e->left)) {
+            // literal float
+            fe->accept(this);            // movss LCx(%rip), %xmm0
+        }
+        else if (auto id = dynamic_cast<IdentifierExp*>(e->left)) {
+            if (isFloatVar[id->name]) {
+                out<<"movss "<<id->name<<"(%rip), %xmm0\n";
+            } else {
+                out<<"movq "<<id->name<<"(%rip), %rax\n";
+                out<<"cvtsi2ss %rax, %xmm0\n";
+            }
+        }
+        else if (auto ne = dynamic_cast<NumberExp*>(e->left)) {
+            out<<"movq $"<<ne->value<<", %rax\n";
+            out<<"cvtsi2ss %rax, %xmm0\n";
+        }
+
+        // --- cargar operando derecho en xmm1 como float ---
+        if (auto fe = dynamic_cast<FloatExp*>(e->right)) {
+            fe->accept(this);            // movss LCy(%rip), %xmm0
+            out<<"movss %xmm0, %xmm1\n";
+        }
+        else if (auto id = dynamic_cast<IdentifierExp*>(e->right)) {
+            if (isFloatVar[id->name]) {
+                out<<"movss "<<id->name<<"(%rip), %xmm1\n";
+            } else {
+                out<<"movq "<<id->name<<"(%rip), %rax\n";
+                out<<"cvtsi2ss %rax, %xmm1\n";
+            }
+        }
+        else if (auto ne = dynamic_cast<NumberExp*>(e->right)) {
+            out<<"movq $"<<ne->value<<", %rax\n";
+            out<<"cvtsi2ss %rax, %xmm1\n";
+        }
+
+        // --- aplicar la operación en xmm0 ---
+        switch(e->op) {
+            case PLUS_OP:  out<<"addss %xmm1, %xmm0\n"; break;
+            case MINUS_OP: out<<"subss %xmm1, %xmm0\n"; break;
+            case MUL_OP:   out<<"mulss %xmm1, %xmm0\n"; break;
+            case DIV_OP:   out<<"divss %xmm1, %xmm0\n"; break;
+            default: break;
+        }
+        return 0;
+    }
+
+    // --- caso entero puro (igual que antes) ---
+    e->left->accept(this);
+    out<<"pushq %rax\n";
+    e->right->accept(this);
+    out<<"movq %rax, %rbx\n";
+    out<<"popq %rax\n";
+    switch(e->op) {
+        case PLUS_OP:  out<<"addq %rbx, %rax\n"; break;
+        case MINUS_OP: out<<"subq %rbx, %rax\n"; break;
+        case MUL_OP:   out<<"imulq %rbx, %rax\n"; break;
+        case DIV_OP:   out<<"cqto\nidivq %rbx\n"; break;
+        default: break;
+    }
+    return 0;
+}
+
+
+void CodeGenVisitor::visit(AssignStatement* s) {
+    auto idExp = dynamic_cast<IdentifierExp*>(s->lhs);
+    bool lhsIsFloat = isFloatVar[idExp->name];
+
+    if (lhsIsFloat) {
+        // 1) Evaluar RHS siempre en %xmm0 como float
+        if (auto fe = dynamic_cast<FloatExp*>(s->rhs)) {
+            // literal real
+            fe->accept(this);                // movss LCx, %xmm0
+        }
+        else if (auto ne = dynamic_cast<NumberExp*>(s->rhs)) {
+            // literal entero → cvtsi2ss
+            out<<"movq $"<<ne->value<<", %rax\n";
+            out<<"cvtsi2ss %rax, %xmm0\n";
+        }
+        else if (auto ie = dynamic_cast<IdentifierExp*>(s->rhs)) {
+            // variable
+            if (isFloatVar[ie->name]) {
+                out<<"movss "<<ie->name<<"(%rip), %xmm0\n";
+            } else {
+                out<<"movq "<<ie->name<<"(%rip), %rax\n";
+                out<<"cvtsi2ss %rax, %xmm0\n";
+            }
+        }
+        else {
+            // expresiones compuestas (BinaryExp, etc.)
+            s->rhs->accept(this);            // las BinaryExp ya dejan el resultado en %xmm0
+        }
+
+        // 2) Guardar en la variable float
+        out<<"movss %xmm0, "<<idExp->name<<"(%rip)\n";
+    }
+    else {
+        // LHS es entero: todo va por %rax
+        if (auto ne = dynamic_cast<NumberExp*>(s->rhs)) {
+            out<<"movq $"<<ne->value<<", %rax\n";
+        }
+        else if (auto ie = dynamic_cast<IdentifierExp*>(s->rhs)) {
+            out<<"movq "<<ie->name<<"(%rip), %rax\n";
+        }
+        else {
+            s->rhs->accept(this);            // BinaryExp deja en %rax para enteros
+        }
+        out<<"movq %rax, "<<idExp->name<<"(%rip)\n";
+    }
+}
+
+
+void CodeGenVisitor::visit(PrintStatement* s) {
+    bool vf = false;
+    if (dynamic_cast<FloatExp*>(s->e)) {
+        vf = true;
+    } else if (auto id = dynamic_cast<IdentifierExp*>(s->e)) {
+        vf = isFloatVar[id->name];
+    }
+    if (vf) {
+        s->e->accept(this);
+        out<<"cvtss2sd %xmm0, %xmm0\n";
+        out<<"leaq print_float_fmt(%rip), %rdi\n";
+        out<<"movb $1, %al\n";
+        out<<"call printf@PLT\n";
+    } else {
+        s->e->accept(this);
+        out<<"movq %rax, %rsi\n";
+        out<<"leaq print_int_fmt(%rip), %rdi\n";
+        out<<"movb $1, %al\n";
+        out<<"call printf@PLT\n";
+    }
+}
+
+void CodeGenVisitor::visit(Program* p) {
+    generate(p);
 }
