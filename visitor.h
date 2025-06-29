@@ -4,7 +4,7 @@
 #include "exp.h"
 #include "environment.h"
 #include <unordered_map>
-#include <list>
+#include <map>
 
 /* adelantos de clases AST */
 class BinaryExp;  class NumberExp; class FloatExp; class BoolExp;
@@ -146,19 +146,14 @@ public:
 };
 
 
-
-
-
-
-
 #include <ostream>
 #include <string>
-
+#include <map>
 class CodeGenVisitor : public Visitor {
     std::ostream& out;
-    std::unordered_map<std::string, float> floatConsts;      // LCx → valor
-    std::unordered_map<float, std::string> literalLabelMap;  // valor → LCx
-    std::unordered_map<std::string, bool> isFloatVar;        // varname → es real?
+    std::map<std::string, float> floatConsts;      // LCx → valor
+    std::map<float, std::string> literalLabelMap;  // valor → LCx
+    std::map<std::string, bool> isFloatVar;        // varname → es real?
     int floatLabelCount;
 public:
     explicit CodeGenVisitor(std::ostream& output);
@@ -193,10 +188,10 @@ public:
 
 // ── en la sección de ConstCollector ──────────────────────────────────
 class ConstCollector : public Visitor {
-    std::unordered_map<std::string, float>& floatConsts;
+    std::map<std::string, float>& floatConsts;
     int& floatLabelCount;
 public:
-    ConstCollector(std::unordered_map<std::string, float>& fc,int& cnt);
+    ConstCollector(std::map<std::string, float>& fc,int& cnt);
 
     float visit(FloatExp*     ) override;
 

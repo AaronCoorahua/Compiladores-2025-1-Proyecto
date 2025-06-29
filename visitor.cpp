@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <string>
 #include <iomanip>
+
 using namespace std;
 
 /* ─────────────────── Despachos accept() generados ──────────────────── */
@@ -460,10 +461,8 @@ void EVALVisitor::visit(AssignStatement* stm) {
 
 
 
-
-ConstCollector::ConstCollector(std::unordered_map<std::string, float>& fc,
-                               int& cnt)
-  : floatConsts(fc), floatLabelCount(cnt) {}
+ConstCollector::ConstCollector(std::map<std::string, float>& fc,
+                               int& cnt): floatConsts(fc), floatLabelCount(cnt) {}
 
 float ConstCollector::visit(FloatExp* e) {
     std::string lbl = "LC" + std::to_string(floatLabelCount++);
