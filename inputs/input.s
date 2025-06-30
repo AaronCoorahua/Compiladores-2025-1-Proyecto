@@ -1,28 +1,40 @@
 .data
 print_int_fmt: .string "%ld\n"
 print_float_fmt: .string "%f\n"
-a: .double 0.0
-b: .double 0.0
-c: .double 0.0
-LC0: .double 6.3
+x: .quad 0
+y: .quad 0
 .text
 .globl main
 main:
-pushq %rbp
-movq %rsp, %rbp
-movsd LC0(%rip), %xmm0
-movsd %xmm0, a(%rip)
-movq $3, %rax
-cvtsi2sd %rax, %xmm0
-movsd %xmm0, b(%rip)
-movsd a(%rip), %xmm0
-movsd b(%rip), %xmm1
-divsd %xmm1, %xmm0
-movsd %xmm0, c(%rip)
-movsd c(%rip), %xmm0
-leaq print_float_fmt(%rip), %rdi
+  pushq %rbp
+  movq %rsp, %rbp
+movq $50, %rax
+movq %rax, x(%rip)
+movq $10, %rax
+movq %rax, y(%rip)
+movq  x(%rip), %rax
+pushq %rax
+movq  y(%rip), %rax
+movq %rax, %rbx
+popq %rax
+cmpq %rbx, %rax
+setg %al
+movzbq %al, %rax
+  cmpq $0, %rax
+  je else_0
+movq  x(%rip), %rax
+movq %rax, %rsi
+leaq print_int_fmt(%rip), %rdi
 movb $1, %al
 call printf@PLT
-movq $0, %rax
-popq %rbp
-ret
+  jmp endif_0
+else_0:
+movq  y(%rip), %rax
+movq %rax, %rsi
+leaq print_int_fmt(%rip), %rdi
+movb $1, %al
+call printf@PLT
+endif_0:
+  movq $0, %rax
+  popq %rbp
+  ret
