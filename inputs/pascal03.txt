@@ -1,0 +1,26 @@
+program MultiFun;
+
+function fact(n: integer): integer;
+begin
+  if n < 2 then
+    fact := 1
+  else
+    fact := n * fact(n-1);
+end;
+
+function sumTo(n: integer): integer;
+begin
+  if n = 0 then
+    sumTo := 0
+  else
+    sumTo := n + sumTo(n-1);
+end;
+
+var
+  a, b: integer;
+begin
+  a := fact(5);
+  b := sumTo(5);
+  writeln(a);
+  writeln(b);
+end.

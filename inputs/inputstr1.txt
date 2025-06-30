@@ -1,12 +1,23 @@
-program Test1;
 type
-  TPoint = record
-    x, y: real;
+  data1 = record
+    x1 : real;
+    y1 : real;
+    r1 : real;
   end;
+
+  data2 = record
+    x2 : integer;
+    y2 : integer;
+    r2 : integer;
+  end;
+
 var
-  p: TPoint;
+  d : data1;
+  e : data2;
+
 begin
-  p.x := 4;
-  p.y := 1.5;
-  writeln(p.y - p.x);
+  d.x1 := 10.2;
+  e.x2 := 13;
+  d.y1 := d.x1 + e.x2;
+  writeln(d.y1);
 end.

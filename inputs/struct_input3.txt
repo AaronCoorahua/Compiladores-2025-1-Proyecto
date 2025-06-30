@@ -2,7 +2,7 @@ program ejemplo;
 
 type
   Datos = record
-    x: float;
+    x: real;
   end;
 var
   d: Datos;

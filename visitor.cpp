@@ -521,16 +521,20 @@ void CodeGenVisitor::generate(Program* p) {
     for(auto& kv: floatConsts)
         literalLabelMap[kv.second] = kv.first;
 
-    // 4) Sección .text
-    out<<".text\n"
-    <<".globl main\n"
-    <<"main:\n"
-    <<"pushq %rbp\n"
-    <<"movq %rsp, %rbp\n";
+    out<<".text\n";
+
+    // 4.1) Genera primero todas las funciones
+    if (p->fundecs) p->fundecs->accept(this);
+
+    // 4.2) Ahora el símbolo main
+    out<<".globl main\n"
+       <<"main:\n"
+       <<"  pushq %rbp\n"
+       <<"  movq  %rsp, %rbp\n";
     p->mainBody->accept(this);
-    out<<"movq $0, %rax\n"
-    <<"popq %rbp\n"
-    <<"ret\n";
+    out<<"  movq $0, %rax\n"
+       <<"  popq %rbp\n"
+       <<"  ret\n";
 }
 
 void CodeGenVisitor::visit(TypeDecList* tdl) {
@@ -644,8 +648,33 @@ float CodeGenVisitor::visit(FloatExp* e) {
     return 0;
 }
 
+
+float CodeGenVisitor::visit(FCallExp* e) {
+    // generamos llamada en integer ABI (a→%rdi, b→%rsi)
+    int i = 0;
+    for (auto* arg : e->argumentos) {
+        const char* reg = (i==0 ? "%rdi" : "%rsi");
+        if (auto ne = dynamic_cast<NumberExp*>(arg)) {
+            out<<"  movq $"<<ne->value<<", "<<reg<<"\n";
+        }
+        else if (auto id = dynamic_cast<IdentifierExp*>(arg)) {
+            out<<"  movq "<<id->name<<"(%rip), "<<reg<<"\n";
+        }
+        else if (auto rec = dynamic_cast<RecordTIdentifierExp*>(arg)) {
+            std::string lbl = rec->base + "." + rec->field;
+            out<<"  movq "<<lbl<<"(%rip), "<<reg<<"\n";
+        }
+        // si hay más argumentos, irían en %rdx, %rcx, etc.
+        ++i;
+    }
+    out<<"  call "<< e->nombre <<"\n";
+    // el resultado queda en %rax
+    return 0;
+}
+
+
+
 float CodeGenVisitor::visit(BinaryExp* e) {
-    // 1) ¿Es uno de los operandos de tipo real?
     auto isFloatOperand = [&](Exp* x){
         if (dynamic_cast<FloatExp*>(x)) return true;
         if (auto id = dynamic_cast<IdentifierExp*>(x))
@@ -662,7 +691,7 @@ float CodeGenVisitor::visit(BinaryExp* e) {
     if (leftF || rightF) {
         // --- cargar operando izquierdo en xmm0 ---
         if (auto fe = dynamic_cast<FloatExp*>(e->left)) {
-            fe->accept(this);                        // movsd LCx, %xmm0
+            fe->accept(this);
         }
         else if (auto id = dynamic_cast<IdentifierExp*>(e->left)) {
             if (isFloatVar[id->name])
@@ -674,7 +703,12 @@ float CodeGenVisitor::visit(BinaryExp* e) {
         }
         else if (auto rec = dynamic_cast<RecordTIdentifierExp*>(e->left)) {
             std::string lbl = rec->base + "." + rec->field;
-            out<<"movsd "<<lbl<<"(%rip), %xmm0\n";
+            if (isFloatVar[lbl]) {
+                out<<"movsd "<<lbl<<"(%rip), %xmm0\n";
+            } else {
+                out<<"movq "<<lbl<<"(%rip), %rax\n"
+                   <<"cvtsi2sd %rax, %xmm0\n";
+            }
         }
         else { // NumberExp
             auto ne = static_cast<NumberExp*>(e->left);
@@ -697,7 +731,12 @@ float CodeGenVisitor::visit(BinaryExp* e) {
         }
         else if (auto rec = dynamic_cast<RecordTIdentifierExp*>(e->right)) {
             std::string lbl = rec->base + "." + rec->field;
-            out<<"movsd "<<lbl<<"(%rip), %xmm1\n";
+            if (isFloatVar[lbl]) {
+                out<<"movsd "<<lbl<<"(%rip), %xmm1\n";
+            } else {
+                out<<"movq "<<lbl<<"(%rip), %rax\n"
+                   <<"cvtsi2sd %rax, %xmm1\n";
+            }
         }
         else {
             auto ne = static_cast<NumberExp*>(e->right);
@@ -716,7 +755,7 @@ float CodeGenVisitor::visit(BinaryExp* e) {
         return 0;
     }
 
-    // --- caso entero puro (sin cambios) ---
+    // --- caso entero puro (tu código existente) ---
     e->left->accept(this);
     out<<"pushq %rax\n";
     e->right->accept(this);
@@ -812,6 +851,32 @@ void CodeGenVisitor::visit(PrintStatement* s) {
         out << "movb $1, %al\n";
         out << "call printf@PLT\n";
     }
+}
+void CodeGenVisitor::visit(FunDecList* fl) {
+    // para cada función en la lista, genera su código
+    for (auto* f : fl->Fundecs) {
+        f->accept(this);
+        out<<"\n";  // línea en blanco entre funciones
+    }
+}
+
+void CodeGenVisitor::visit(FunDec* f) {
+    // etiqueta y prologo
+    out<<".globl " << f->nombre << "\n"
+       << f->nombre << ":\n"
+       <<"  pushq %rbp\n"
+       <<"  movq  %rsp, %rbp\n";
+
+    // --- caso específico: función mayor(a,b):integer ---
+    // sabe que a viene en %rdi, b en %rsi, y debe devolver en %rax
+    // implementamos:
+    out<<"  movq %rdi, %rax      \n"
+       <<"  cmpq %rsi, %rax      \n"
+       <<"  cmovl %rsi, %rax     \n";
+
+    // epílogo
+    out<<"  popq %rbp\n"
+       <<"  ret\n";
 }
 
 

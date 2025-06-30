@@ -29,10 +29,10 @@
     <list default="true" id="41ecb750-17ed-40a2-a49f-1402a33e5607" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/inputs/input.s" beforeDir="false" afterPath="$PROJECT_DIR$/inputs/input.s" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/inputs/inputflo1.txt" beforeDir="false" afterPath="$PROJECT_DIR$/inputs/inputflo1.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/inputs/inputstruct1.txt" beforeDir="false" afterPath="$PROJECT_DIR$/inputs/inputstr1.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/parser.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/parser.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/parser.h" beforeDir="false" afterPath="$PROJECT_DIR$/parser.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inputs/input1.txt" beforeDir="false" afterPath="$PROJECT_DIR$/inputs/input1.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inputs/input2.txt" beforeDir="false" afterPath="$PROJECT_DIR$/inputs/input2.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inputs/inputstr1.txt" beforeDir="false" afterPath="$PROJECT_DIR$/inputs/inputstr1.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inputs/struct_input3.txt" beforeDir="false" afterPath="$PROJECT_DIR$/inputs/struct_input3.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/visitor.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/visitor.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/visitor.h" beforeDir="false" afterPath="$PROJECT_DIR$/visitor.h" afterDir="false" />
     </list>
@@ -85,7 +85,7 @@
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
     &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;5a96b89f&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;8b0f5a78&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -96,7 +96,7 @@
   }
 }</component>
   <component name="RunManager">
-    <configuration name="descompri" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="inputstr1.txt" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" WORKING_DIR="file://$PROJECT_DIR$/inputs" PASS_PARENT_ENVS_2="true" PROJECT_NAME="descompri" TARGET_NAME="descompri" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="descompri" RUN_TARGET_NAME="descompri">
+    <configuration name="descompri" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="pascal03.txt" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" WORKING_DIR="file://$PROJECT_DIR$/inputs" PASS_PARENT_ENVS_2="true" PROJECT_NAME="descompri" TARGET_NAME="descompri" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="descompri" RUN_TARGET_NAME="descompri">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
@@ -111,7 +111,9 @@
       <updated>1751145695491</updated>
       <workItem from="1751145697264" duration="7728000" />
       <workItem from="1751208420211" duration="14910000" />
-      <workItem from="1751233852849" duration="10171000" />
+      <workItem from="1751233852849" duration="10500000" />
+      <workItem from="1751249949270" duration="3209000" />
+      <workItem from="1751297888135" duration="4437000" />
     </task>
     <servers />
   </component>
