@@ -5,7 +5,7 @@ var
   r : real;
 
 begin
-  i := 4.1;
+  i := 4;
   r := 3.14;
   writeln(i + r);
 end.

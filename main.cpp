@@ -4,19 +4,19 @@
 #include "scanner.h"
 #include "parser.h"
 #include "visitor.h"
-
+#include <filesystem>
 using namespace std;
 
 int main(int argc, const char* argv[]) {
     if (argc != 2) {
-        cout << "Numero incorrecto de argumentos. Uso: " << argv[0] << " <archivo_de_entrada>" << endl;
-        exit(1);
+        std::cerr << "Uso: " << argv[0] << " <archivo_entrada>\n";
+        return 1;
     }
 
-    ifstream infile(argv[1]);
+    std::ifstream infile(argv[1]);
     if (!infile.is_open()) {
-        cout << "No se pudo abrir el archivo: " << argv[1] << endl;
-        exit(1);
+        std::cerr << "No se pudo abrir el archivo: " << argv[1] << "\n";
+        return 1;
     }
 
     string input;
@@ -53,11 +53,16 @@ int main(int argc, const char* argv[]) {
         cout  << endl;
         cout << "EJECUTAR:" << endl;
         evalVisitor.ejecutar(program);
-        std::ofstream asmOut("input.s");
+
+        std::string input_filename(argv[1]);
+        std::filesystem::path path(input_filename);
+        std::string output_filename = "../asembly/"+path.stem().string() + ".s";
+
+        std::ofstream asmOut(output_filename);
         CodeGenVisitor codeGen(asmOut);
         codeGen.generate(program);
         asmOut.close();
-        std::cout << ">> Ensamblador generado en input.s" << std::endl;
+        std::cout << ">> Ensamblador generado en "<<output_filename << std::endl;
         delete program;
     } catch (const exception& e) {
         cout << "Error durante la ejecución: " << e.what() << endl;
