@@ -29,10 +29,7 @@
     <list default="true" id="41ecb750-17ed-40a2-a49f-1402a33e5607" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/inputs/input.s" beforeDir="false" afterPath="$PROJECT_DIR$/inputs/input.s" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/inputs/input2.txt" beforeDir="false" afterPath="$PROJECT_DIR$/inputs/input2.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/inputs/inputflo3.txt" beforeDir="false" afterPath="$PROJECT_DIR$/inputs/inputflo3.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/inputs/pascal01.txt" beforeDir="false" afterPath="$PROJECT_DIR$/inputs/pascal01.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/inputs/pascal02.txt" beforeDir="false" afterPath="$PROJECT_DIR$/inputs/pascal02.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/inputs/pascal03.txt" beforeDir="false" afterPath="$PROJECT_DIR$/inputs/pascal03.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/visitor.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/visitor.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/visitor.h" beforeDir="false" afterPath="$PROJECT_DIR$/visitor.h" afterDir="false" />
@@ -86,7 +83,7 @@
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
-    "git-widget-placeholder": "c627ccd4",
+    "git-widget-placeholder": "7dfaeb07",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",

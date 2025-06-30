@@ -505,7 +505,9 @@ void ConstCollector::visit(RecordTAssignStatement* s) {
 CodeGenVisitor::CodeGenVisitor(std::ostream& output): out(output), floatLabelCount(0) {}
 
 void CodeGenVisitor::generate(Program* p) {
+    registrarVariables(p);
     p->typeDecList->accept(this);
+
 
     ConstCollector collector(floatConsts, floatLabelCount);
     collector.visit(p);
@@ -520,13 +522,12 @@ void CodeGenVisitor::generate(Program* p) {
 
     // NUEVO: declarar parámetros y retorno de funciones
     for (auto& [name, type] : varTypes) {
-        if (recordFieldTypes.count(type)) continue;  // ignora structs
+        if (recordFieldTypes.count(type)) continue;
         if (isFloatVar[name])
             out << name << ": .double 0.0\n";
         else
             out << name << ": .quad 0\n";
     }
-
     out << ".text\n";
     if (p->fundecs) p->fundecs->accept(this);
 
@@ -535,6 +536,22 @@ void CodeGenVisitor::generate(Program* p) {
     p->mainBody->accept(this);
     out << "  movq $0, %rax\n  popq %rbp\n  ret\n";
 }
+void CodeGenVisitor::registrarVariables(Program* p) {
+    if (p->fundecs) {
+        for (auto* f : p->fundecs->Fundecs) {
+            for (auto pit = f->parametros.begin(), tit = f->tipos.begin();
+                 pit != f->parametros.end(); ++pit, ++tit) {
+                varTypes[*pit] = *tit;
+                isFloatVar[*pit] = (*tit == "real");
+                 }
+
+            std::string retvar = "__ret_" + f->nombre;
+            varTypes[retvar] = f->tipo;
+            isFloatVar[retvar] = (f->tipo == "real");
+        }
+    }
+}
+
 
 void CodeGenVisitor::visit(TypeDecList* tdl) {
     for (auto* td : tdl->typedecs)
@@ -898,6 +915,7 @@ void CodeGenVisitor::visit(FunDec* f) {
     currFun = f->nombre;
 
     int i = 0;
+    // registrar parámetros y resultado
     for (auto pit = f->parametros.begin(), tit = f->tipos.begin();
          pit != f->parametros.end(); ++pit, ++tit, ++i) {
         std::string name = *pit;
@@ -905,23 +923,16 @@ void CodeGenVisitor::visit(FunDec* f) {
         varTypes[name] = type;
         isFloatVar[name] = (type == "real");
 
-        const char* reg = (i == 0) ? "%rdi" : "%rsi";
-
+        const char* reg = (i == 0 ? "%rdi" : "%rsi");
         if (type == "real")
             out << "  movsd " << reg << ", " << name << "(%rip)\n";
         else
             out << "  movq " << reg << ", " << name << "(%rip)\n";
-
          }
 
     std::string retvar = "__ret_" + f->nombre;
     varTypes[retvar] = f->tipo;
     isFloatVar[retvar] = (f->tipo == "real");
-
-    if (f->tipo == "real")
-        out << retvar << ": .double 0.0\n";
-    else
-        out << retvar << ": .quad 0\n";
 
     f->cuerpo->accept(this);
 

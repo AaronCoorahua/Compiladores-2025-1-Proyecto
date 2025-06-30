@@ -8,7 +8,7 @@ y: .quad 0
 main:
   pushq %rbp
   movq %rsp, %rbp
-movq $5, %rax
+movq $50, %rax
 movq %rax, x(%rip)
 movq $10, %rax
 movq %rax, y(%rip)

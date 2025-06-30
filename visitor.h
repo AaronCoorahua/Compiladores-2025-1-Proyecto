@@ -159,14 +159,11 @@ class CodeGenVisitor : public Visitor {
     std::map<std::string,std::string>                    varTypes;
     int floatLabelCount;
     std::string currFun;
-
-
-
-
-
 public:
     explicit CodeGenVisitor(std::ostream& output);
     void generate(Program* p);
+
+    void registrarVariables(Program* p);
 
 
     void visit(TypeDecList*       ) override;
@@ -178,8 +175,6 @@ public:
     void  visit(FunDec*           ) override;
     void  visit(FunDecList*       ) override;
     float visit(FCallExp*         ) override;
-
-
 
     float visit(BinaryExp*         ) override;
     float visit(NumberExp*         ) override;

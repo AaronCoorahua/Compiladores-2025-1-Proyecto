@@ -2,7 +2,7 @@ program ExampleProgram;
  var
  x, y: Integer;
  begin
- x := 5;
+ x := 50;
  y := 10;
  if x > y then
  begin
