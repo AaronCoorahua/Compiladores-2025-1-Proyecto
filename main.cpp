@@ -5,19 +5,18 @@
 #include "parser.h"
 #include "visitor.h"
 #include <filesystem>
-
 using namespace std;
 
 int main(int argc, const char* argv[]) {
     if (argc != 2) {
-        cout << "Numero incorrecto de argumentos. Uso: " << argv[0] << " <archivo_de_entrada>" << endl;
-        exit(1);
+        std::cerr << "Uso: " << argv[0] << " <archivo_entrada>\n";
+        return 1;
     }
 
-    ifstream infile(argv[1]);
+    std::ifstream infile(argv[1]);
     if (!infile.is_open()) {
-        cout << "No se pudo abrir el archivo: " << argv[1] << endl;
-        exit(1);
+        std::cerr << "No se pudo abrir el archivo: " << argv[1] << "\n";
+        return 1;
     }
 
     string input;
