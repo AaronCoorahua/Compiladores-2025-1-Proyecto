@@ -1,0 +1,9 @@
+program exp2;
+
+var
+  resultado: boolean;
+
+begin
+  resultado := 3 < 5;
+  writeln(resultado);
+end.

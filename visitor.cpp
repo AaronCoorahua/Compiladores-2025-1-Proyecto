@@ -469,7 +469,7 @@ float TYPEVisitor::visit(BinaryExp* e) {
         case GT_OP:
         case GE_OP:
             if ((t1 == "integer" || t1 == "real") && (t2 == "integer" || t2 == "real")) {
-                e->type = "bool";
+                e->type = "boolean";
             } else {
                 cerr << "[TYPE ERROR] Comparacion invalida entre '" << t1 << "' y '" << t2 << "'\n";
                 exit(1);
@@ -555,7 +555,7 @@ float TYPEVisitor::visit(FloatExp *e) {
 }
 
 float TYPEVisitor::visit(BoolExp *e) {
-    e->type = "bool";
+    e->type = "boolean";
     return 0;
 }
 
@@ -574,8 +574,8 @@ float TYPEVisitor::visit(IFExp* e) {
     e->cond->accept(this);
     e->left->accept(this);
     e->right->accept(this);
-    if (e->cond->type != "bool") {
-        cerr << "[TYPE ERROR] La condicion de ifexp debe ser bool\n";
+    if (e->cond->type != "boolean") {
+        cerr << "[TYPE ERROR] La condicion de ifexp debe ser boolean\n";
         exit(1);
     }
 
@@ -630,8 +630,8 @@ float TYPEVisitor::visit(RecordTIdentifierExp* e) {
 void TYPEVisitor::visit(PrintStatement* s) {
     s->e->accept(this);  // Verifica la expresion
 
-    if (s->e->type != "integer" && s->e->type != "real" && s->e->type != "bool") {
-        cerr << "[TYPE ERROR] writeln(...) solo acepta int, float o bool\n";
+    if (s->e->type != "integer" && s->e->type != "real" && s->e->type != "boolean") {
+        cerr << "[TYPE ERROR] writeln(...) solo acepta int, float o boolean\n";
         exit(1);
     }
 }
@@ -639,8 +639,8 @@ void TYPEVisitor::visit(PrintStatement* s) {
 
 void TYPEVisitor::visit(IfStatement* s) {
     s->condition->accept(this);
-    if (s->condition->type != "bool") {
-        cerr << "[TYPE ERROR] La condicion del if debe ser de tipo bool\n";
+    if (s->condition->type != "boolean") {
+        cerr << "[TYPE ERROR] La condicion del if debe ser de tipo boolean\n";
         exit(1);
     }
 
@@ -668,8 +668,8 @@ void TYPEVisitor::visit(ForStatement* s) {
 void TYPEVisitor::visit(WhileStatement* s) {
     s->condition->accept(this);
 
-    if (s->condition->type != "bool") {
-        cerr << "[TYPE ERROR] La condicion del while debe ser bool\n";
+    if (s->condition->type != "boolean") {
+        cerr << "[TYPE ERROR] La condicion del while debe ser boolean\n";
         exit(1);
     }
 
