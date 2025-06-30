@@ -1,15 +1,12 @@
 program ExampleProgram;
  var
- x, y: Integer;
+ x: Integer;
+ i: Integer;
  begin
- x := 5;
- y := 10;
- if x > y then
+ x := 1;
+ for i := 0 to 9 do
  begin
- writeln(x);
- end
- else
- begin
- writeln(y);
+ x := x + i;
  end;
+ writeln(x);
  end.

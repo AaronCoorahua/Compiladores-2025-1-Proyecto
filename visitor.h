@@ -158,6 +158,9 @@ class CodeGenVisitor : public Visitor {
     std::map<std::string,std::map<std::string,int>> recordLayouts;
     std::map<std::string,std::string>                    varTypes;
     int floatLabelCount;
+    std::string currFun;
+
+
 
 
 
@@ -187,8 +190,8 @@ public:
 
     void  visit(AssignStatement*   ) override;
     void  visit(PrintStatement*    ) override;
-    void  visit(IfStatement*       ) override {}
-    void  visit(ForStatement*      ) override {}
+    void  visit(IfStatement*       ) override;
+    void  visit(ForStatement*      ) override;
     void  visit(WhileStatement*    ) override {}
     void  visit(ReturnStatement*   ) override;
 

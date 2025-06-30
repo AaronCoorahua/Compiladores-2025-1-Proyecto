@@ -1,21 +1,15 @@
-program contar;
+program ExampleProgram;
 
 var
-  i, total: integer;
+    x, y: integer;
+
+function suma(a, b: integer): integer;
+begin
+    suma := a + b;
+end;
 
 begin
-  i := 1;
-  total := 0;
-
-  while i <= 5 do
-  begin
-    if i - (i / 2) * 2 == 0 then
-    begin
-      writeln(i);
-      total := total + i;
-    end;
-    i := i + 1;
-  end;
-
-  writeln(total);
+x := 1;
+y := 20;
+writeln(suma(x, y));
 end.

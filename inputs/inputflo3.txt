@@ -7,3 +7,4 @@ var
 begin
   x := 10.0;
   writeln(x);
+ end.
