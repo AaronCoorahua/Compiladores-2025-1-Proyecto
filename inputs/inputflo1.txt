@@ -1,7 +1,8 @@
 program suma1;
 
 var
-  a, b, c : real;
+  a, c : real;
+  b : integrer;
 
 begin
   a := 6.3;

@@ -334,21 +334,13 @@ TypeDec* Parser::parseTypeDec() {
         cerr << "Se espera '=' después del nombre del tipo\n"; exit(1);
     }
 
-    if (!match(Token::RECORD)) {
-        cerr << "Se espera 'record'\n"; exit(1);
-    }
-
-    vector<RecordVarDec*> fields = parseFieldList();
-
-    if (!match(Token::END_KW)) {
-        cerr << "Se espera 'end' para cerrar el record\n"; exit(1);
-    }
-
-    if (!match(Token::PC)) {
-        cerr << "Se espera ';' después de 'end'\n"; exit(1);
-    }
+    match(Token::RECORD);
+    std::vector<RecordVarDec*> fields = parseFieldList();
+    match(Token::END_KW);
+    match(Token::PC);
 
     return new TypeDec(name, fields);
+
 }
 
 
@@ -366,31 +358,46 @@ TypeDecList* Parser::parseTypeDecList() {
 }
 
 
-RecordVarDec* Parser::parseField() {
-    if (!match(Token::ID)) {
-        cerr << "Se espera ID en campo de record\n"; exit(1);
-    }
-    string fieldName = previous->text;
 
-    if (!match(Token::COLON)) {
-        cerr << "Se espera ':' después del nombre del campo\n"; exit(1);
-    }
 
-    if (!match(Token::ID)) {
-        cerr << "Se espera tipo del campo\n"; exit(1);
-    }
-    string fieldType = previous->text;
-    return new RecordVarDec(fieldName, fieldType);
-}
-vector<RecordVarDec*> Parser::parseFieldList() {
-    vector<RecordVarDec*> fields;
+// … arriba en parser.cpp, tras los includes …
 
-    fields.push_back(parseField());
+//------------------------------------------------------------------------------
+// parseFieldList: lee tantas líneas de campos como haya antes de 'end'
+// Cada línea tiene la forma:
+//     id1, id2, … : Tipo;
+// Y genera un RecordVarDec por cada id.
+//------------------------------------------------------------------------------
+std::vector<RecordVarDec*> Parser::parseFieldList() {
+    std::vector<RecordVarDec*> fields;
 
-    while (match(Token::PC)) {
-        if (check(Token::END_KW)) break;  // ; opcional al final
-        fields.push_back(parseField());
+    // Mientras veamos un identificador seguimos leyendo campos
+    while (current->type == Token::ID) {
+        // 1) Leer lista de nombres separados por coma
+        std::list<std::string> names;
+        names.push_back(current->text);
+        match(Token::ID);
+
+        while (match(Token::COMA)) {
+            names.push_back(current->text);
+            match(Token::ID);
+        }
+
+        // 2) Leer ':' y luego el nombre del tipo
+        match(Token::COLON);
+        std::string fieldType = current->text;
+        match(Token::ID);
+
+        // 3) Consumir ';'
+        match(Token::PC);
+
+        // 4) Crear un RecordVarDec por cada nombre
+        for (auto& nm : names) {
+            fields.push_back(new RecordVarDec(nm, fieldType));
+        }
     }
 
     return fields;
 }
+
+
