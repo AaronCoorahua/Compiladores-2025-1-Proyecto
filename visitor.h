@@ -212,37 +212,50 @@ public:
     void visit(FunDecList *) override;
 };
 
+#include <ostream>
+#include <string>
+#include <map>
 class CodeGenVisitor : public Visitor {
     std::ostream& out;
     std::map<std::string, double> floatConsts;       // LCx → valor
     std::map<double, std::string> literalLabelMap;
-    std::map<std::string, bool> isFloatVar;        // varname → es real?
+    std::map<std::string, bool> isFloatVar;
+    std::map<std::string,std::map<std::string,std::string>> recordFieldTypes;
+    std::map<std::string,std::map<std::string,int>> recordLayouts;
+    std::map<std::string,std::string>                    varTypes;
     int floatLabelCount;
+
+
+
 public:
     explicit CodeGenVisitor(std::ostream& output);
     void generate(Program* p);
+
+
+    void visit(TypeDecList*       ) override;
+    void visit(TypeDec*           ) override;
+    void visit(RecordVarDec*      ) override;
+    float visit(RecordTIdentifierExp*) override;
+    void  visit(RecordTAssignStatement*) override;
+
     float visit(BinaryExp*         ) override;
     float visit(NumberExp*         ) override;
     float visit(FloatExp*          ) override;
     float visit(BoolExp*           ) override { return 0; }
-    float visit(IdentifierExp*     ) override;
+    float visit(IdentifierExp*) override;
     float visit(IFExp*             ) override { return 0; }
     float visit(FCallExp*          ) override { return 0; }
-    float visit(RecordTIdentifierExp*) override { return 0; }
     void  visit(AssignStatement*   ) override;
     void  visit(PrintStatement*    ) override;
     void  visit(IfStatement*       ) override {}
     void  visit(ForStatement*      ) override {}
     void  visit(WhileStatement*    ) override {}
     void  visit(ReturnStatement*   ) override {}
-    void  visit(RecordTAssignStatement*) override {}
+
     void  visit(VarDec*            ) override;
     void  visit(VarDecList*        ) override;
     void  visit(StatementList*     ) override;
     void  visit(Body*              ) override;
-    void  visit(TypeDecList*       ) override {}
-    void  visit(TypeDec*           ) override {}
-    void  visit(RecordVarDec*      ) override {}
     void  visit(FunDec*            ) override {}
     void  visit(FunDecList*        ) override {}
     void  visit(Program*           ) override;
@@ -275,6 +288,8 @@ public:
     // 7) Arranca el recorrido en vardecs y mainBody del Program
     void visit(Program* p) override;
 
+    void  visit(RecordTAssignStatement* s) override;
+
     // El resto de métodos los puedes dejar vacíos
     float visit(NumberExp*)            override { return 0; }
     float visit(IdentifierExp*)        override { return 0; }
@@ -286,7 +301,7 @@ public:
     void  visit(ForStatement*)         override {}
     void  visit(WhileStatement*)       override {}
     void  visit(ReturnStatement*)      override {}
-    void  visit(RecordTAssignStatement*) override {}
+
     void  visit(VarDec*)               override {}
     void  visit(VarDecList*)           override {}
     void  visit(TypeDecList*)          override {}

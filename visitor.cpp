@@ -877,11 +877,16 @@ void ConstCollector::visit(Program* p) {
     p->mainBody->accept(this);
 }
 
+void ConstCollector::visit(RecordTAssignStatement* s) {
+    // Recorre el subárbol de la expresión derecha
+    s->val->accept(this);
+}
 
 CodeGenVisitor::CodeGenVisitor(std::ostream& output): out(output), floatLabelCount(0) {}
 
-void CodeGenVisitor::generate(Program* p) {
 
+void CodeGenVisitor::generate(Program* p) {
+    p->typeDecList->accept(this);
     ConstCollector collector(floatConsts, floatLabelCount);
     collector.visit(p);
 
@@ -909,18 +914,96 @@ void CodeGenVisitor::generate(Program* p) {
        <<"ret\n";
 }
 
+void CodeGenVisitor::visit(TypeDecList* tdl) {
+    for (auto* td : tdl->typedecs)
+        td->accept(this);
+}
+
+void CodeGenVisitor::visit(TypeDec* td) {
+    int offset = 0;
+    for (auto* field : td->atributs) {
+        // field->atribute = nombre, field->type = "real"|"integer"|otro
+        recordFieldTypes[td->name][field->atribute] = field->type;
+        recordLayouts[td->name][field->atribute] = offset;
+        // todos ocupan 8 bytes (double o quad)
+        offset += 8;
+    }
+}
+
+// ── 2) Declarar cada var record como etiquetas por campo ─────────────
+void CodeGenVisitor::visit(RecordVarDec* rv) {
+    // este visitor no recorre TypeDecs, solo lo usamos para vardecs
+    // normalmente no se llega aquí: las RecordVarDec ya se procesaron en TypeDec
+}
+
+// ── 3) Generar load de campo record.base.field ───────────────────────
+float CodeGenVisitor::visit(RecordTIdentifierExp* e) {
+    std::string recType = varTypes[e->base];
+    auto& layout = recordLayouts[recType];
+    std::string lbl = e->base + "." + e->field;
+
+    if (isFloatVar[lbl]) {
+        out << "movsd " << lbl << "(%rip), %xmm0\n";
+    } else {
+        out << "movq  " << lbl << "(%rip), %rax\n";
+    }
+    return 0;
+}
+
+// ── 4) Generar store a campo record.base.field := expr ──────────────
+void CodeGenVisitor::visit(RecordTAssignStatement* s) {
+    std::string recType = varTypes[s->base];
+    std::string lbl = s->base + "." + s->field;
+    bool vf = isFloatVar[lbl];
+    // primero calcula RHS (queda en %xmm0 o %rax según corresponda)
+    s->val->accept(this);
+    if (vf) out << "movsd %xmm0, " << lbl << "(%rip)\n";
+    else    out << "movq  %rax,  " << lbl << "(%rip)\n";
+}
 void CodeGenVisitor::visit(VarDecList* v) {
     for(auto* vd: v->vardecs) vd->accept(this);
 }
 
 void CodeGenVisitor::visit(VarDec* v) {
-    bool vf = (v->type=="real");
-    for(auto& name: v->vars) {
+
+    if(recordFieldTypes.count(v->type)) {
+        for(auto& name: v->vars) {
+            varTypes[name] = v->type;
+            for(auto& [field, ftype]: recordFieldTypes[v->type]) {
+                std::string lbl = name + "." + field;
+                // aquí decides si es float (real) o entero
+                isFloatVar[lbl] = (ftype == "real");
+                // declaro espacio en .data
+                if(ftype == "real")
+                    out<< lbl <<": .double 0.0\n";
+                else
+                    out<< lbl <<": .quad   0\n";
+            }
+        }
+        return;
+    }
+    // 2) si no es record, tu código previo:
+    bool vf = (v->type == "real");
+    for (auto& name : v->vars) {
+        varTypes[name]   = v->type;
         isFloatVar[name] = vf;
-        if(vf) out<<name<<": .double 0.0\n";
-        else  out<<name<<": .quad 0\n";
+        if (vf) out << name << ": .double 0.0\n";
+        else    out << name << ": .quad 0\n";
     }
 }
+
+float CodeGenVisitor::visit(IdentifierExp* e) {
+    // si la variable es real (double), cargamos con movsd en xmm0
+    if (isFloatVar[e->name]) {
+        out << "movsd " << e->name << "(%rip), %xmm0\n";
+    } else {
+        // sino es entero, cargamos en rax
+        out << "movq  " << e->name << "(%rip), %rax\n";
+    }
+    return 0;
+}
+
+
 
 void CodeGenVisitor::visit(StatementList* s) {
     for(auto* st: s->stms) st->accept(this);
@@ -942,59 +1025,77 @@ float CodeGenVisitor::visit(FloatExp* e) {
     return 0;
 }
 
-float CodeGenVisitor::visit(IdentifierExp* e) {
-    if(isFloatVar[e->name])
-        out<<"movsd "<<e->name<<"(%rip), %xmm0\n";
-    else
-        out<<"movq "<<e->name<<"(%rip), %rax\n";
-    return 0;
-}
-
 float CodeGenVisitor::visit(BinaryExp* e) {
-    // Detectar si alguno es real
-    auto isFloat = [&](Exp* x){
-        return dynamic_cast<FloatExp*>(x)
-               || (dynamic_cast<IdentifierExp*>(x)
-                   && isFloatVar[static_cast<IdentifierExp*>(x)->name]);
+    auto isFloatOperand = [&](Exp* x){
+        if (dynamic_cast<FloatExp*>(x)) return true;
+        if (auto id = dynamic_cast<IdentifierExp*>(x))
+            return isFloatVar[id->name];
+        if (auto rec = dynamic_cast<RecordTIdentifierExp*>(x)) {
+            std::string full = rec->base + "." + rec->field;
+            return isFloatVar[full];
+        }
+        return false;
     };
-    bool leftF  = isFloat(e->left);
-    bool rightF = isFloat(e->right);
+    bool leftF  = isFloatOperand(e->left);
+    bool rightF = isFloatOperand(e->right);
 
     if (leftF || rightF) {
-        // Cargar operando izquierdo en xmm0 (con conversión si es entero)
+        // --- cargar operando izquierdo en xmm0 ---
         if (auto fe = dynamic_cast<FloatExp*>(e->left)) {
             fe->accept(this);
-        } else if (auto ie = dynamic_cast<IdentifierExp*>(e->left)) {
-            if (isFloatVar[ie->name])
-                out<<"movsd "<<ie->name<<"(%rip), %xmm0\n";
+        }
+        else if (auto id = dynamic_cast<IdentifierExp*>(e->left)) {
+            if (isFloatVar[id->name])
+                out<<"movsd "<<id->name<<"(%rip), %xmm0\n";
             else {
-                out<<"movq "<<ie->name<<"(%rip), %rax\n"
+                out<<"movq "<<id->name<<"(%rip), %rax\n"
                    <<"cvtsi2sd %rax, %xmm0\n";
             }
-        } else /* NumberExp */ {
+        }
+        else if (auto rec = dynamic_cast<RecordTIdentifierExp*>(e->left)) {
+            std::string lbl = rec->base + "." + rec->field;
+            if (isFloatVar[lbl]) {
+                out<<"movsd "<<lbl<<"(%rip), %xmm0\n";
+            } else {
+                out<<"movq "<<lbl<<"(%rip), %rax\n"
+                   <<"cvtsi2sd %rax, %xmm0\n";
+            }
+        }
+        else { // NumberExp
             auto ne = static_cast<NumberExp*>(e->left);
             out<<"movq $"<<ne->value<<", %rax\n"
                <<"cvtsi2sd %rax, %xmm0\n";
         }
 
-        // Cargar operando derecho en xmm1
+        // --- cargar operando derecho en xmm1 ---
         if (auto fe = dynamic_cast<FloatExp*>(e->right)) {
             fe->accept(this);
             out<<"movsd %xmm0, %xmm1\n";
-        } else if (auto ie = dynamic_cast<IdentifierExp*>(e->right)) {
-            if (isFloatVar[ie->name])
-                out<<"movsd "<<ie->name<<"(%rip), %xmm1\n";
+        }
+        else if (auto id = dynamic_cast<IdentifierExp*>(e->right)) {
+            if (isFloatVar[id->name])
+                out<<"movsd "<<id->name<<"(%rip), %xmm1\n";
             else {
-                out<<"movq "<<ie->name<<"(%rip), %rax\n"
+                out<<"movq "<<id->name<<"(%rip), %rax\n"
                    <<"cvtsi2sd %rax, %xmm1\n";
             }
-        } else {
+        }
+        else if (auto rec = dynamic_cast<RecordTIdentifierExp*>(e->right)) {
+            std::string lbl = rec->base + "." + rec->field;
+            if (isFloatVar[lbl]) {
+                out<<"movsd "<<lbl<<"(%rip), %xmm1\n";
+            } else {
+                out<<"movq "<<lbl<<"(%rip), %rax\n"
+                   <<"cvtsi2sd %rax, %xmm1\n";
+            }
+        }
+        else {
             auto ne = static_cast<NumberExp*>(e->right);
             out<<"movq $"<<ne->value<<", %rax\n"
                <<"cvtsi2sd %rax, %xmm1\n";
         }
 
-        // Aplicar la operación
+        // --- aplicar la operación en xmm0 ---
         switch(e->op) {
             case PLUS_OP:  out<<"addsd %xmm1, %xmm0\n"; break;
             case MINUS_OP: out<<"subsd %xmm1, %xmm0\n"; break;
@@ -1005,7 +1106,7 @@ float CodeGenVisitor::visit(BinaryExp* e) {
         return 0;
     }
 
-    // Caso entero puro
+    // --- caso entero puro (tu código existente) ---
     e->left->accept(this);
     out<<"pushq %rax\n";
     e->right->accept(this);
@@ -1020,6 +1121,7 @@ float CodeGenVisitor::visit(BinaryExp* e) {
     }
     return 0;
 }
+
 
 
 void CodeGenVisitor::visit(AssignStatement* s) {
@@ -1068,28 +1170,42 @@ void CodeGenVisitor::visit(AssignStatement* s) {
         out<<"movq %rax, "<<idExp->name<<"(%rip)\n";
     }
 }
-
+#include <functional>
 
 void CodeGenVisitor::visit(PrintStatement* s) {
-    bool vf = false;
-    if (dynamic_cast<FloatExp*>(s->e)) {
-        vf = true;
-    } else if (auto id = dynamic_cast<IdentifierExp*>(s->e)) {
-        vf = isFloatVar[id->name];
-    }
+    // Helper recursivo para saber si 'e' o cualquiera de sus hijos es real
+    std::function<bool(Exp*)> isFloatExpr = [&](Exp* x) -> bool {
+        if (dynamic_cast<FloatExp*>(x)) return true;
+        if (auto id = dynamic_cast<IdentifierExp*>(x))
+            return isFloatVar[id->name];
+        if (auto rec = dynamic_cast<RecordTIdentifierExp*>(x)) {
+            std::string full = rec->base + "." + rec->field;
+            return isFloatVar[full];
+        }
+        if (auto be = dynamic_cast<BinaryExp*>(x))
+            return isFloatExpr(be->left) || isFloatExpr(be->right);
+        return false;
+    };
+
+    bool vf = isFloatExpr(s->e);
+
     if (vf) {
+        // Rama flotante: dejo un double en xmm0
         s->e->accept(this);
-        out<<"leaq print_float_fmt(%rip), %rdi\n";
-        out<<"movb $1, %al\n";
-        out<<"call printf@PLT\n";
+        out << "leaq print_float_fmt(%rip), %rdi\n";
+        out << "movb $1, %al\n";
+        out << "call printf@PLT\n";
     } else {
+        // Rama entera: dejo un entero en rax
         s->e->accept(this);
-        out<<"movq %rax, %rsi\n";
-        out<<"leaq print_int_fmt(%rip), %rdi\n";
-        out<<"movb $1, %al\n";
-        out<<"call printf@PLT\n";
+        out << "movq %rax, %rsi\n";
+        out << "leaq print_int_fmt(%rip), %rdi\n";
+        out << "movb $1, %al\n";
+        out << "call printf@PLT\n";
     }
 }
+
+
 
 void CodeGenVisitor::visit(Program* p) {
     generate(p);
