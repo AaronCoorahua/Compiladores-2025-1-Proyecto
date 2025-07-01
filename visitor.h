@@ -225,11 +225,15 @@ class CodeGenVisitor : public Visitor {
     std::map<std::string,std::string>                    varTypes;
     int floatLabelCount;
 
-
+    std::string currFun;
 
 public:
     explicit CodeGenVisitor(std::ostream& output);
     void generate(Program* p);
+
+
+    void registrarVariables(Program* p);
+
 
 
     void visit(TypeDecList*       ) override;
@@ -238,26 +242,36 @@ public:
     float visit(RecordTIdentifierExp*) override;
     void  visit(RecordTAssignStatement*) override;
 
+
+    void  visit(FunDec*           ) override;
+    void  visit(FunDecList*       ) override;
+    float visit(FCallExp*         ) override;
+
     float visit(BinaryExp*         ) override;
     float visit(NumberExp*         ) override;
     float visit(FloatExp*          ) override;
     float visit(BoolExp*           ) override { return 0; }
     float visit(IdentifierExp*) override;
     float visit(IFExp*             ) override { return 0; }
-    float visit(FCallExp*          ) override { return 0; }
+
+
+
     void  visit(AssignStatement*   ) override;
     void  visit(PrintStatement*    ) override;
-    void  visit(IfStatement*       ) override {}
-    void  visit(ForStatement*      ) override {}
+    void  visit(IfStatement*       ) override;
+    void  visit(ForStatement*      ) override;
     void  visit(WhileStatement*    ) override {}
-    void  visit(ReturnStatement*   ) override {}
+
+    void  visit(ReturnStatement*   ) override;
+
 
     void  visit(VarDec*            ) override;
     void  visit(VarDecList*        ) override;
     void  visit(StatementList*     ) override;
     void  visit(Body*              ) override;
-    void  visit(FunDec*            ) override {}
-    void  visit(FunDecList*        ) override {}
+
+
+
     void  visit(Program*           ) override;
 };
 

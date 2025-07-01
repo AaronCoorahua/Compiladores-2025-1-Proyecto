@@ -1,0 +1,12 @@
+program ExampleProgram;
+ var
+ x: Integer;
+ i: Integer;
+ begin
+ x := 1;
+ for i := 0 to 9 do
+ begin
+ x := x + i;
+ end;
+ writeln(x);
+ end.

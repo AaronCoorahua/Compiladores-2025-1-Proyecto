@@ -1,11 +1,12 @@
 program suma1;
 
 var
-  a, b, c : real;
+  a, c : real;
+  b : integrer;
 
 begin
-  a := 4.5;
-  b := 1.3;
-  c := a - b;
+  a := 6.3;
+  b := 3;
+  c := a / b;
   writeln(c);
 end.

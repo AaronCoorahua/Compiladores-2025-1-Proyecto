@@ -12,7 +12,7 @@ begin
 end;
 
 begin
-  x := 10;
+  x := 30;
   y := 20;
   r := mayor(x, y);
   writeln(r);

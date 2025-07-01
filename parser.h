@@ -8,6 +8,8 @@
 class Parser {
 
 private:
+
+
     /*——————  estado ——————*/
     Scanner* scanner;
     Token*   current  {nullptr};
@@ -41,7 +43,6 @@ private:
     Exp*           parseTerm();
     Exp*           parseFactor();
 
-    RecordVarDec*          parseField();
     vector<RecordVarDec*>  parseFieldList();
 public:
     explicit Parser(Scanner*);
