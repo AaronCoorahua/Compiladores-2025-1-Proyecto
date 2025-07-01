@@ -1,0 +1,3 @@
+C:/Users/Aaron Coorahua/Desktop/UTEC/Compiladores/Proyecto/build/CMakeFiles/Proyecto.dir
+C:/Users/Aaron Coorahua/Desktop/UTEC/Compiladores/Proyecto/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/Aaron Coorahua/Desktop/UTEC/Compiladores/Proyecto/build/CMakeFiles/ZERO_CHECK.dir

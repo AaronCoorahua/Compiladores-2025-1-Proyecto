@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\Aaron Coorahua\Desktop\UTEC\Compiladores\Proyecto\exp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Aaron Coorahua\Desktop\UTEC\Compiladores\Proyecto\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Aaron Coorahua\Desktop\UTEC\Compiladores\Proyecto\parser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Aaron Coorahua\Desktop\UTEC\Compiladores\Proyecto\scanner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Aaron Coorahua\Desktop\UTEC\Compiladores\Proyecto\token.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\Aaron Coorahua\Desktop\UTEC\Compiladores\Proyecto\visitor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Users\Aaron Coorahua\Desktop\UTEC\Compiladores\Proyecto\environment.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Aaron Coorahua\Desktop\UTEC\Compiladores\Proyecto\exp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Aaron Coorahua\Desktop\UTEC\Compiladores\Proyecto\parser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Aaron Coorahua\Desktop\UTEC\Compiladores\Proyecto\scanner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Aaron Coorahua\Desktop\UTEC\Compiladores\Proyecto\token.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\Aaron Coorahua\Desktop\UTEC\Compiladores\Proyecto\visitor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Aaron Coorahua\Desktop\UTEC\Compiladores\Proyecto\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{A2CAFCF0-B04F-3C1A-94DE-8BB01B26B967}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{B0EB3B74-87C1-361C-9966-F4A1EB22A0E2}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

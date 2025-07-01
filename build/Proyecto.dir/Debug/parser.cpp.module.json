@@ -1,0 +1,14 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "Proyecto.dir\\Debug\\parser.obj",
+            "outputs": [
+                "C:\\Users\\Aaron Coorahua\\Desktop\\UTEC\\Compiladores\\Proyecto\\build\\Proyecto.dir\\Debug\\vc143.pdb",
+                "Proyecto.dir\\Debug\\"
+            ],
+            "requires": []
+        }
+    ]
+}

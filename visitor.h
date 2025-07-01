@@ -218,7 +218,7 @@ public:
 class CodeGenVisitor : public Visitor {
     std::ostream& out;
     std::map<std::string, double> floatConsts;       // LCx → valor
-    std::map<double, std::string> literalLabelMap;
+    //std::unordered_map<std::string,std::string> literalLabelMap;
     std::map<std::string, bool> isFloatVar;
     std::map<std::string,std::map<std::string,std::string>> recordFieldTypes;
     std::map<std::string,std::map<std::string,int>> recordLayouts;
@@ -310,7 +310,7 @@ public:
     float visit(IdentifierExp*)        override { return 0; }
     float visit(BoolExp*)              override { return 0; }
     float visit(IFExp*)                override { return 0; }
-    float visit(FCallExp*)             override { return 0; }
+    float visit(FCallExp*)             override;
     float visit(RecordTIdentifierExp*) override { return 0; }
     void  visit(IfStatement*)          override {}
     void  visit(ForStatement*)         override {}

@@ -45,7 +45,7 @@ Factor         ::= id
                 | 'false'
                 | '(' CExp ')'
                 | id '(' ArgList? ')'
-		        | id '.' id                   -- acceso a campo
+		        | id '.' id
 
 
 

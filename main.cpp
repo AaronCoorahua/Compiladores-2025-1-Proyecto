@@ -1,71 +1,85 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <filesystem>
 #include "scanner.h"
 #include "parser.h"
 #include "visitor.h"
-#include <filesystem>
+
 using namespace std;
 
 int main(int argc, const char* argv[]) {
-    if (argc != 2) {
-        std::cerr << "Uso: " << argv[0] << " <archivo_entrada>\n";
+    if (argc < 2 || argc > 3) {
+        cout << "Uso: " << argv[0] << " <archivo_de_entrada> [--frontend]" << endl;
         return 1;
     }
 
-    std::ifstream infile(argv[1]);
+    string input_path = argv[1];
+    bool frontend_mode = (argc == 3 && string(argv[2]) == "--frontend");
+
+    ifstream infile(input_path);
     if (!infile.is_open()) {
-        std::cerr << "No se pudo abrir el archivo: " << argv[1] << "\n";
+        cerr << "No se pudo abrir el archivo: " << input_path << endl;
         return 1;
     }
 
-    string input;
-    string line;
-    while (getline(infile, line)) {
-        input += line + '\n';
-    }
+    string input((istreambuf_iterator<char>(infile)), istreambuf_iterator<char>());
     infile.close();
 
+    // Scanner
     Scanner scanner(input.c_str());
-
-    string input_copy = input;
-    Scanner scanner_test(input_copy.c_str());
+    Scanner scanner_test(input.c_str());
     test_scanner(&scanner_test);
-    cout << "Scanner exitoso" << endl;
-    cout << endl;
-    cout << "Iniciando parsing:" << endl;
+    cout << "Scanner exitoso\n\nIniciando parsing:" << endl;
+
     Parser parser(&scanner);
     try {
         Program* program = parser.parseProgram();
-        cout << "Parsing exitoso" << endl << endl;
-        cout << "Iniciando Visitor:" << endl;
-        TYPEVisitor typeVisitor;
-        cout << "TYPE CHECK:" << endl;
-        typeVisitor.visit(program);
-        cout << "Type checking exitoso" << endl << endl;
+        cout << "Parsing exitoso\n\nIniciando Visitor:\nTYPE CHECK:" << endl;
 
+        TYPEVisitor typeVisitor;
+        typeVisitor.visit(program);
+        cout << "Type checking exitoso\n" << endl;
 
         PrintVisitor printVisitor;
         EVALVisitor evalVisitor;
 
         cout << "IMPRIMIR:" << endl;
         printVisitor.imprimir(program);
-        cout  << endl;
-        cout << "EJECUTAR:" << endl;
+        cout << "\nEJECUTAR:" << endl;
         evalVisitor.ejecutar(program);
 
-        std::string input_filename(argv[1]);
-        std::filesystem::path path(input_filename);
-        std::string output_filename = "../asembly/"+path.stem().string() + ".s";
+        // Ruta de salida del ASM
+        std::filesystem::path path(input_path);
+        std::string base_name = path.stem().string();
 
-        std::ofstream asmOut(output_filename);
+        std::string output_path = frontend_mode
+            ? "project/build/" + base_name + ".s"
+            : "assembly/" + base_name + ".s";
+
+        if (frontend_mode)
+            std::cout << "[DEBUG] Modo FRONTEND: escribiendo en " << output_path << std::endl;
+        else
+            std::cout << "[DEBUG] Modo NORMAL: escribiendo en " << output_path << std::endl;
+
+        // Asegura que el directorio exista
+        std::filesystem::create_directories(std::filesystem::path(output_path).parent_path());
+
+        std::ofstream asmOut(output_path);
+        if (!asmOut.is_open()) {
+            cerr << "No se pudo crear el archivo ASM: " << output_path << endl;
+            return 1;
+        }
+
         CodeGenVisitor codeGen(asmOut);
         codeGen.generate(program);
         asmOut.close();
-        std::cout << ">> Ensamblador generado en "<<output_filename << std::endl;
+
+        cout << "Ensamblador generado en: " << output_path << endl;
+
         delete program;
     } catch (const exception& e) {
-        cout << "Error durante la ejecución: " << e.what() << endl;
+        cerr << "Error durante la ejecución: " << e.what() << endl;
         return 1;
     }
 
