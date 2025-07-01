@@ -2,13 +2,7 @@ program asigna;
 
 var
   x : real;
-
-
 begin
   x := 10.0;
   writeln(x);
-<<<<<<< HEAD:inputs/inputflo3.txt
  end.
-=======
-end.
->>>>>>> 12c93d0dc200725df8e3acebf526e668ecf86cb6:test_cases/float_input3.txt
