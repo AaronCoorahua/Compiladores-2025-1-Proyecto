@@ -891,11 +891,6 @@ void ConstCollector::visit(RecordTAssignStatement* s) {
 CodeGenVisitor::CodeGenVisitor(std::ostream& output): out(output), floatLabelCount(0) {}
 
 
-void CodeGenVisitor::generate(Program* p) {
-    registrarVariables(p);
-    p->typeDecList->accept(this);
-
-
 
 void CodeGenVisitor::generate(Program* p) {
     p->typeDecList->accept(this);

@@ -1,7 +1,7 @@
 program ExampleProgram;
  var
- x: Integer;
- i: Integer;
+ x: integer;
+ i: integer;
  begin
  x := 1;
  for i := 0 to 9 do

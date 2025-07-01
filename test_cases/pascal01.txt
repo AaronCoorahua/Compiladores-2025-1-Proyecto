@@ -1,6 +1,6 @@
 program ExampleProgram;
  var
- x, y: Integer;
+ x, y: integer;
  begin
  x := 50;
  y := 10;
