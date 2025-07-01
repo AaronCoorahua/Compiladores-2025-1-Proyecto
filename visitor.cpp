@@ -372,13 +372,12 @@ void EVALVisitor::visit(ForStatement* s){
 
 
 float EVALVisitor::visit(RecordTIdentifierExp* e) {
-    if(!env.has_field(e->base,e->field)){
+    if (!env.has_field(e->base, e->field)) {
         cerr << "Campo no declarado: " << e->base << "." << e->field << endl;
         exit(1);
     }
-    return (int) env.get_field(e->base, e->field);
+    return env.get_field(e->base, e->field);
 }
-
 void EVALVisitor::visit(RecordTAssignStatement* s) {
     if (!env.has_field(s->base, s->field)) {
         cerr << "[ERROR] Campo no declarado: " << s->base << "." << s->field << endl;
@@ -442,7 +441,10 @@ void EVALVisitor::visit(AssignStatement* stm) {
 
 
 
+
+
 //  --------TYPECHECKER_VISITOR---------
+
 
 float TYPEVisitor::visit(BinaryExp* e) {
     e->left->accept(this);
@@ -841,7 +843,11 @@ void TYPEVisitor::visit(FunDecList* fdl) {
     }
 }
 
+
+
 ConstCollector::ConstCollector(std::map<std::string, double>& fc,int& cnt): floatConsts(fc), floatLabelCount(cnt) {}
+
+
 
 float ConstCollector::visit(FloatExp* e) {
     std::string lbl = "LC" + std::to_string(floatLabelCount++);
