@@ -29,8 +29,6 @@
     <list default="true" id="41ecb750-17ed-40a2-a49f-1402a33e5607" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/inputs/input.s" beforeDir="false" afterPath="$PROJECT_DIR$/inputs/input.s" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/inputs/pascal01.txt" beforeDir="false" afterPath="$PROJECT_DIR$/inputs/pascal01.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/inputs/pascal03.txt" beforeDir="false" afterPath="$PROJECT_DIR$/inputs/pascal03.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/visitor.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/visitor.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/visitor.h" beforeDir="false" afterPath="$PROJECT_DIR$/visitor.h" afterDir="false" />
     </list>
@@ -58,6 +56,13 @@
     &quot;accountId&quot;: &quot;8c716073-acb0-49c8-9043-bd3753c70148&quot;
   }
 }</component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/exp.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/exp.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/main.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/visitor.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/visitor.h" root0="FORCE_HIGHLIGHTING" />
+  </component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
   </component>
@@ -83,7 +88,7 @@
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
-    "git-widget-placeholder": "7dfaeb07",
+    "git-widget-placeholder": "c57d5fa5",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -94,7 +99,12 @@
   }
 }]]></component>
   <component name="RunManager">
-    <configuration name="descompri" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="pascal01.txt" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" WORKING_DIR="file://$PROJECT_DIR$/inputs" PASS_PARENT_ENVS_2="true" PROJECT_NAME="descompri" TARGET_NAME="descompri" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="descompri" RUN_TARGET_NAME="descompri">
+    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="descompri" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="whileeee.txt" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" WORKING_DIR="file://$PROJECT_DIR$/inputs" PASS_PARENT_ENVS_2="true" PROJECT_NAME="descompri" TARGET_NAME="descompri" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="descompri" RUN_TARGET_NAME="descompri">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
