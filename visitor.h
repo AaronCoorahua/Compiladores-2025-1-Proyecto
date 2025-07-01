@@ -260,7 +260,8 @@ public:
     void  visit(PrintStatement*    ) override;
     void  visit(IfStatement*       ) override;
     void  visit(ForStatement*      ) override;
-    void  visit(WhileStatement*    ) override {}
+
+    void  visit(WhileStatement*    ) override;
 
     void  visit(ReturnStatement*   ) override;
 

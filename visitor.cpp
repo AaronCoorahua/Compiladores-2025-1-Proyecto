@@ -918,10 +918,13 @@ void CodeGenVisitor::generate(Program* p) {
     out << ".text\n";
     if (p->fundecs) p->fundecs->accept(this);
 
-    out << ".globl main\nmain:\n";
+    out << ".globl main\n";
+    out << ".text\n";
+    out << "main:\n";
     out << "  pushq %rbp\n  movq %rsp, %rbp\n";
     p->mainBody->accept(this);
     out << "  movq $0, %rax\n  popq %rbp\n  ret\n";
+
 }
 void CodeGenVisitor::registrarVariables(Program* p) {
     if (p->fundecs) {
@@ -1356,6 +1359,24 @@ void CodeGenVisitor::visit(ReturnStatement* s) {
     out<<"  popq %rbp\n";
     out<<"  ret\n";
 }
+
+void CodeGenVisitor::visit(WhileStatement* s) {
+    static int labelCount = 0;
+    int id = labelCount++;
+
+    std::string startLabel = "while_start_" + std::to_string(id);
+    std::string endLabel   = "while_end_" + std::to_string(id);
+
+    out << startLabel << ":\n";
+    s->condition->accept(this);
+    out << "  cmpq $0, %rax\n";
+    out << "  je " << endLabel << "\n";
+
+    s->b->accept(this);
+    out << "  jmp " << startLabel << "\n";
+    out << endLabel << ":\n";
+}
+
 void CodeGenVisitor::visit(IfStatement* s) {
     static int labelCount = 0;
     int id = labelCount++;
@@ -1363,7 +1384,7 @@ void CodeGenVisitor::visit(IfStatement* s) {
     std::string elseLabel = "else_" + std::to_string(id);
     std::string endLabel  = "endif_" + std::to_string(id);
 
-    s->condition->accept(this); // resultado en %rax
+    s->condition->accept(this); // deja resultado en %rax
     out << "  cmpq $0, %rax\n";
     out << "  je " << elseLabel << "\n";
 
@@ -1374,6 +1395,7 @@ void CodeGenVisitor::visit(IfStatement* s) {
     if (s->els) s->els->accept(this);
     out << endLabel << ":\n";
 }
+
 void CodeGenVisitor::visit(ForStatement* s) {
     static int labelCount = 0;
     int id = labelCount++;
@@ -1381,6 +1403,7 @@ void CodeGenVisitor::visit(ForStatement* s) {
     std::string loopLabel = "for_loop_" + std::to_string(id);
     std::string endLabel  = "for_end_" + std::to_string(id);
 
+    // inicializar variable de control
     s->start->accept(this);
     out << "  movq %rax, " << s->id << "(%rip)\n";
 
