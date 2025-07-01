@@ -1,60 +1,82 @@
 import os
+import shutil
 import subprocess
 from pathlib import Path
 
-# Rutas
-TEST_CASES_DIR = Path("test_cases")
-ASSEMBLY_DIR = Path("assembly")
-OUTPUTS_DIR = Path("outputs")
-BUILD_DIR = Path("build")
-EXECUTABLE = BUILD_DIR / "Debug" / "Proyecto.exe"  # Ajustar según tu configuración
+# Rutas base
+PROJECT_ROOT = Path(__file__).parent.resolve()
+BUILD_DIR = PROJECT_ROOT / "build"
+TEST_CASES_DIR = PROJECT_ROOT / "test_cases"
+ASSEMBLY_DIR = PROJECT_ROOT / "assembly"
+OUTPUTS_DIR = PROJECT_ROOT / "outputs"
+EXECUTABLE = BUILD_DIR / "Proyecto"
 
-# Asegurar carpetas
-for folder in [ASSEMBLY_DIR, OUTPUTS_DIR, BUILD_DIR]:
-    folder.mkdir(parents=True, exist_ok=True)
+# Función auxiliar para correr comandos con output
+def run_command(cmd, cwd=None):
+    try:
+        result = subprocess.run(cmd, cwd=cwd, check=True, capture_output=True, text=True)
+        return result.stdout
+    except subprocess.CalledProcessError as e:
+        return f"❌ Error:\n{e.stderr}"
 
-# 1. 🛠️ Compilar el compilador con CMake
-print("🔧 Compilando el compilador Pascal...")
-try:
-    subprocess.run(["cmake", ".."], cwd=BUILD_DIR, check=True)
-    subprocess.run(["cmake", "--build", "."], cwd=BUILD_DIR, check=True)
-except subprocess.CalledProcessError as e:
-    print("❌ Error al compilar el compilador:\n", e)
-    exit(1)
+# Paso 1: Compilar el compilador Pascal
+def build_compiler():
+    print("🔧 Compilando el compilador Pascal...")
+    if (BUILD_DIR / "CMakeCache.txt").exists():
+        with open(BUILD_DIR / "CMakeCache.txt", "r") as f:
+            if "c:/" in f.read().lower():  # Detecta mezcla de Windows y Linux
+                print("⚠️ Conflicto detectado en CMakeCache.txt (Windows/Linux mix)")
+                print("🧹 Limpiando y reconstruyendo `build/`...")
+                shutil.rmtree(BUILD_DIR)
 
-if not EXECUTABLE.exists():
-    print(f"❌ No se encontró {EXECUTABLE}")
-    exit(1)
+    BUILD_DIR.mkdir(parents=True, exist_ok=True)
+    configure = subprocess.run(["cmake", ".."], cwd=BUILD_DIR)
+    if configure.returncode != 0:
+        print("❌ Error al configurar CMake")
+        return False
 
-# 2. 📂 Procesar cada archivo .txt
-for txt_file in TEST_CASES_DIR.glob("*.txt"):
-    print(f"\n🧪 Procesando {txt_file.name}...")
+    build = subprocess.run(["cmake", "--build", "."], cwd=BUILD_DIR)
+    if build.returncode != 0:
+        print("❌ Error al compilar el proyecto")
+        return False
 
-    # Llamar al compilador
-    result = subprocess.run([str(EXECUTABLE), str(txt_file)], capture_output=True, text=True)
-    if result.returncode != 0:
-        print(f"❌ Error al compilar {txt_file.name}:\n{result.stderr}")
-        continue
+    print("✅ Compilador listo\n")
+    return True
 
-    # Verifica ensamblador generado
-    asm_file = ASSEMBLY_DIR / (txt_file.stem + ".s")
-    if not asm_file.exists():
-        print(f"⚠️  No se generó {asm_file}")
-        continue
+# Paso 2: Ejecutar pruebas
+def run_tests():
+    ASSEMBLY_DIR.mkdir(exist_ok=True)
+    OUTPUTS_DIR.mkdir(exist_ok=True)
 
-    # 3. 🔧 Compilar con gcc
-    binary_path = asm_file.with_suffix(".exe")
-    compile_result = subprocess.run(["gcc", "-no-pie", "-o", str(binary_path), str(asm_file)],
-                                    capture_output=True, text=True, shell=True)
-    if compile_result.returncode != 0:
-        print(f"❌ Error de gcc en {asm_file.name}:\n{compile_result.stderr}")
-        continue
+    for txt_file in TEST_CASES_DIR.glob("*.txt"):
+        print(f"🧪 Procesando {txt_file.name}...")
 
-    # 4. 💻 Ejecutar el binario
-    output_txt = OUTPUTS_DIR / (txt_file.stem + ".txt")
-    with open(output_txt, "w") as out_file:
-        run_result = subprocess.run([str(binary_path)], stdout=out_file, stderr=subprocess.STDOUT, shell=True)
+        # Ejecutar compilador Pascal
+        compile_output = run_command([str(EXECUTABLE), str(txt_file)])
+        asm_file = ASSEMBLY_DIR / (txt_file.stem + ".s")
 
-    print(f"✅ Output guardado en {output_txt.name}")
+        if not asm_file.exists():
+            print(f"⚠️ No se generó ensamblador para {txt_file.name}")
+            continue
 
-print("\n🎉 Todo completado.")
+        # Compilar ensamblador con gcc
+        binary_path = asm_file.with_suffix("")
+        gcc_result = subprocess.run(["gcc", "-no-pie", "-o", str(binary_path), str(asm_file)],
+                                    capture_output=True, text=True)
+        if gcc_result.returncode != 0:
+            print(f"❌ Error de gcc en {txt_file.name}:\n{gcc_result.stderr}")
+            continue
+
+        # Ejecutar binario y guardar output
+        output_txt = OUTPUTS_DIR / f"{txt_file.stem}.txt"
+        with open(output_txt, "w") as f:
+            run_result = subprocess.run([str(binary_path)], stdout=f, stderr=subprocess.STDOUT)
+
+        # Mostrar resumen
+        with open(output_txt) as f:
+            output_preview = f.read().strip()
+        print(f"📤 Output del programa:\n{output_preview}\n")
+
+if __name__ == "__main__":
+    if build_compiler():
+        run_tests()
