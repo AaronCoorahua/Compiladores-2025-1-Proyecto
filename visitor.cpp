@@ -891,13 +891,6 @@ void ConstCollector::visit(RecordTAssignStatement* s) {
 
 CodeGenVisitor::CodeGenVisitor(std::ostream& output): out(output), floatLabelCount(0) {}
 
-
-void CodeGenVisitor::generate(Program* p) {
-    registrarVariables(p);
-    p->typeDecList->accept(this);
-
-
-
 void CodeGenVisitor::generate(Program* p) {
     p->typeDecList->accept(this);
     ConstCollector collector(floatConsts, floatLabelCount);
@@ -1405,9 +1398,6 @@ void CodeGenVisitor::visit(ForStatement* s) {
     out << "  jmp " << loopLabel << "\n";
     out << endLabel << ":\n";
 }
-
-
-
 
 
 void CodeGenVisitor::visit(Program* p) {

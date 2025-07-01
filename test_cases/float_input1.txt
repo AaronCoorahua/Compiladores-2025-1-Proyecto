@@ -2,7 +2,7 @@ program suma1;
 
 var
   a, c : real;
-  b : integrer;
+  b : integer;
 
 begin
   a := 6.3;
