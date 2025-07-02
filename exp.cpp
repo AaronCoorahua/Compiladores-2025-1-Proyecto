@@ -9,13 +9,12 @@ IFExp::IFExp(Exp* c, Exp* l, Exp* r) : cond(c), left(l), right(r) {}
 BinaryExp::BinaryExp(Exp* l, Exp* r, BinaryOp op)
         : left(l), right(r), op(op)
 {
-    type = (op == PLUS_OP || op == MINUS_OP ||
-            op == MUL_OP  || op == DIV_OP) ? "int" : "bool";
+    type = (op == PLUS_OP || op == MINUS_OP || op == MUL_OP  || op == DIV_OP) ? "int" : "bool";
 }
 
-NumberExp   ::NumberExp(int v)              : value(v) {}
-FloatExp    ::FloatExp(float v) : value(v) {}
-BoolExp     ::BoolExp(bool v)               : value(v) {}
+NumberExp ::NumberExp(int v) : value(v) {}
+FloatExp ::FloatExp(float v) : value(v) {}
+BoolExp ::BoolExp(bool v) : value(v) {}
 IdentifierExp::IdentifierExp(const string& n): name(n) {}
 
 NumberExp::~NumberExp()  = default;
@@ -30,7 +29,7 @@ AssignStatement::AssignStatement(Exp* l, Exp* r): lhs(l), rhs(r) {}
 AssignStatement::~AssignStatement() { delete rhs; delete lhs; }
 
 PrintStatement::PrintStatement(Exp* e): e(e) {}
-PrintStatement::~PrintStatement()    { delete e; }
+PrintStatement::~PrintStatement() { delete e; }
 
 IfStatement::IfStatement(Exp* c, Body* t, Body* e)
         : condition(c), then(t), els(e) {}

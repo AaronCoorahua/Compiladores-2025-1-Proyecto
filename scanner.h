@@ -13,7 +13,7 @@ public:
     explicit Scanner(const char* txt) : input(txt) {}
 
     Token* nextToken();     
-    void   reset()           { first = current = 0; }
+    void reset() { first = current = 0; }
 
     ~Scanner() = default;
 };

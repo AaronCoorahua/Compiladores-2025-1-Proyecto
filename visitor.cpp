@@ -30,17 +30,17 @@ int ReturnStatement ::accept(Visitor* v){ v->visit(this); return 0; }
 int RecordTAssignStatement::accept(Visitor *v) { v->visit(this); return 0;}
 
 // List | Body
-int VarDec       ::accept(Visitor* v){ v->visit(this); return 0; }
-int VarDecList   ::accept(Visitor* v){ v->visit(this); return 0; }
+int VarDec ::accept(Visitor* v){ v->visit(this); return 0; }
+int VarDecList ::accept(Visitor* v){ v->visit(this); return 0; }
 int StatementList::accept(Visitor* v){ v->visit(this); return 0; }
-int Body         ::accept(Visitor* v){ v->visit(this); return 0; }
+int Body ::accept(Visitor* v){ v->visit(this); return 0; }
 int TypeDecList  ::accept(Visitor *v){ v->visit(this); return 0; }
 
-int TypeDec      ::accept(Visitor *v){ v->visit(this); return 0; }
+int TypeDec ::accept(Visitor *v){ v->visit(this); return 0; }
 int RecordVarDec::accept(Visitor *v){ v->visit(this); return 0; }
 
 // Funciones
-int FunDec     ::accept(Visitor* v){ v->visit(this); return 0; }
+int FunDec ::accept(Visitor* v){ v->visit(this); return 0; }
 int FunDecList ::accept(Visitor* v){ v->visit(this); return 0; }
 
 // PRINT VISITOR
@@ -432,10 +432,6 @@ void EVALVisitor::visit(AssignStatement* stm) {
 
     cerr << "[ERROR] AssignStatement con lhs no reconocido" << endl;
 }
-
-
-
-
 
 //  VISITOR TYPECHECKER
 

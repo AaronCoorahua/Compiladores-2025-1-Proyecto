@@ -4,7 +4,6 @@
 
 using namespace std;
 
-
 bool Parser::match(Token::Type t){
     if (check(t)){ advance(); return true; }
     return false;
@@ -28,60 +27,7 @@ bool Parser::advance(){
 }
 
 
-Parser::Parser(Scanner* sc):scanner(sc){
-    current = scanner->nextToken();
-    if (current->type == Token::ERR){
-        cerr << "Primer token inválido: " << current->text << endl;
-        exit(1);
-    }
-}
-
-
-VarDec* Parser::parseVarDec(){
-
-
-    list<string> ids;
-    match(Token::ID);                 
-    ids.push_back(previous->text);
-    while (match(Token::COMA)){
-        match(Token::ID); ids.push_back(previous->text);
-    }
-
-    match(Token::COLON);            
-    match(Token::ID);                 
-    string type = previous->text;
-    match(Token::PC);
-    return new VarDec(type, ids);
-}
-VarDecList* Parser::parseVarDecList(){
-    auto* v = new VarDecList();
-
-    if (!match(Token::VAR)) return v;
-    while (check(Token::ID)) {         
-        VarDec* d = parseVarDec();
-        if (d) v->add(d);
-    }
-    return v;
-}
-
-
-StatementList* Parser::parseStatementList(){
-    auto* sl = new StatementList();
-    sl->add(parseStatement());
-    while (match(Token::PC)){                  
-        if (check(Token::END_KW) || check(Token::ELSE)) break;
-        sl->add(parseStatement());
-    }
-    return sl;
-}
-Body* Parser::parseBody(){
-    match(Token::BEGIN_KW);
-    auto* v = check(Token::VAR) ? parseVarDecList() : new VarDecList();
-    auto* s = parseStatementList();
-    match(Token::END_KW);
-    return new Body(v,s);
-}
-
+// Program        ::= 'program' id ';' TypeDecList? VarDecList FunDecList? Body '.'
 
 Program* Parser::parseProgram(){
     auto* p = new Program();
@@ -103,6 +49,53 @@ Program* Parser::parseProgram(){
     return p;
 }
 
+// Body 	       ::= 'begin' VarDecList? StmtList 'end'
+
+Body* Parser::parseBody(){
+    match(Token::BEGIN_KW);
+    auto* v = check(Token::VAR) ? parseVarDecList() : new VarDecList();
+    auto* s = parseStatementList();
+    match(Token::END_KW);
+    return new Body(v,s);
+}
+
+
+// TypeDecList    ::= ('type' TypeDec)*
+
+TypeDecList* Parser::parseTypeDecList() {
+    auto* l = new TypeDecList();
+    if (!match(Token::TYPE)) return l;
+
+
+    while (check(Token::ID)) {
+        TypeDec* t = parseTypeDec();
+        if (t) l->add(t);
+    }
+
+    return l;
+}
+
+// TypeDec        ::= id '=' Type ';'
+
+TypeDec* Parser::parseTypeDec() {
+    if (!match(Token::ID)) {
+        cerr << "Se espera un ID (nombre del tipo)\n"; exit(1);
+    }
+    string name = previous->text;
+
+    if (!match(Token::ASSIGN)) {
+        cerr << "Se espera '=' después del nombre del tipo\n"; exit(1);
+    }
+
+    std::vector<RecordVarDec*> fields = parseRecordType();
+
+    match(Token::PC);
+
+    return new TypeDec(name, fields);
+
+}
+
+// FunDecList     ::= (FunctionDec)*
 
 FunDecList* Parser::parseFunDecList(){
     auto* l = new FunDecList();
@@ -114,41 +107,119 @@ FunDecList* Parser::parseFunDecList(){
     }
     return l;
 }
-FunDec* Parser::parseFunDec(){
+
+//FunctionDec    ::= 'function' id '(' ParamList? ')' ':' Type ';' 'begin' StmtList 'end' ';'   
+
+FunDec* Parser::parseFunDec() {
     if (!match(Token::FUNCTION)) return nullptr;
 
     auto* f = new FunDec();
 
-    match(Token::ID);  f->nombre = previous->text; 
-
+    match(Token::ID);
+    f->nombre = previous->text;
 
     match(Token::PI);
-    if (!check(Token::PD)){
-        do{
-            list<string> ids;
-            match(Token::ID); ids.push_back(previous->text);
-            while (match(Token::COMA)){ match(Token::ID); ids.push_back(previous->text); }
-
-            match(Token::COLON);
-            match(Token::ID); string ptype = previous->text;
-
-            for (auto& id: ids){ f->parametros.push_back(id); f->tipos.push_back(ptype); }
-        } while (match(Token::PC));                
+    if (!check(Token::PD)) {
+        parseParamList(f);  
     }
-    match(Token::PD);                           
-
+    match(Token::PD);
 
     match(Token::COLON);
-    match(Token::ID);  f->tipo = previous->text;
-    match(Token::PC);                           
-
+    match(Token::ID);
+    f->tipo = previous->text;
+    match(Token::PC);
 
     f->cuerpo = parseBody();
-    match(Token::PC);                              
+    match(Token::PC);
 
     return f;
 }
 
+
+// ParamList      ::= Param (',' Param)*
+
+void Parser::parseParamList(FunDec* f) {
+    parseParam(f);  
+
+    while (match(Token::PC)) {  
+        parseParam(f);
+    }
+}
+
+
+// Param          ::= id ':' Type
+
+void Parser::parseParam(FunDec* f) {
+    std::list<std::string> ids;
+
+    match(Token::ID);
+    ids.push_back(previous->text);
+
+    while (match(Token::COMA)) {
+        match(Token::ID);
+        ids.push_back(previous->text);
+    }
+
+    match(Token::COLON);
+    match(Token::ID);
+    std::string ptype = previous->text;
+
+    for (auto& id : ids) {
+        f->parametros.push_back(id);
+        f->tipos.push_back(ptype);
+    }
+}
+
+// VarList        ::= id (',' id)*
+
+VarDec* Parser::parseVarDec(){
+
+
+    list<string> ids;
+    match(Token::ID);                 
+    ids.push_back(previous->text);
+    while (match(Token::COMA)){
+        match(Token::ID); ids.push_back(previous->text);
+    }
+
+    match(Token::COLON);            
+    match(Token::ID);                 
+    string type = previous->text;
+    match(Token::PC);
+    return new VarDec(type, ids);
+}
+
+
+
+VarDecList* Parser::parseVarDecList(){
+    auto* v = new VarDecList();
+
+    if (!match(Token::VAR)) return v;
+    while (check(Token::ID)) {         
+        VarDec* d = parseVarDec();
+        if (d) v->add(d);
+    }
+    return v;
+}
+
+StatementList* Parser::parseStatementList(){
+    auto* sl = new StatementList();
+    sl->add(parseStatement());
+    while (match(Token::PC)){                  
+        if (check(Token::END_KW) || check(Token::ELSE)) break;
+        sl->add(parseStatement());
+    }
+    return sl;
+}
+
+// record_type    ::= 'record' field_list 'end'
+
+std::vector<RecordVarDec*> Parser::parseRecordType() {
+    match(Token::RECORD);                              
+    std::vector<RecordVarDec*> fields = parseFieldList();
+    match(Token::END_KW);                                
+    return fields;
+}
 
 Stm* Parser::parseStatement(){
 
@@ -230,6 +301,15 @@ Stm* Parser::parseStatement(){
 }
 
 
+Parser::Parser(Scanner* sc):scanner(sc){
+    current = scanner->nextToken();
+    if (current->type == Token::ERR){
+        cerr << "Primer token inválido: " << current->text << endl;
+        exit(1);
+    }
+}
+
+
 Exp* Parser::parseCExp(){
     Exp* left = parseExpression();
     if ( match(Token::LT) || match(Token::LE) ||
@@ -257,6 +337,7 @@ Exp* Parser::parseExpression(){
     }
     return left;
 }
+
 Exp* Parser::parseTerm(){
     Exp* left = parseFactor();
     while (match(Token::MUL) || match(Token::DIV)){
@@ -266,6 +347,9 @@ Exp* Parser::parseTerm(){
     }
     return left;
 }
+
+//Factor         ::=  float
+
 Exp* Parser::parseFactor() {
     if (match(Token::TRUE))  return new BoolExp(1);
     if (match(Token::FALSE)) return new BoolExp(0);
@@ -320,38 +404,6 @@ Body* Parser::parseBlockOrStmt() {
     return new Body(v, sl);
 }
 
-TypeDec* Parser::parseTypeDec() {
-    if (!match(Token::ID)) {
-        cerr << "Se espera un ID (nombre del tipo)\n"; exit(1);
-    }
-    string name = previous->text;
-
-    if (!match(Token::ASSIGN)) {
-        cerr << "Se espera '=' después del nombre del tipo\n"; exit(1);
-    }
-
-    match(Token::RECORD);
-    std::vector<RecordVarDec*> fields = parseFieldList();
-    match(Token::END_KW);
-    match(Token::PC);
-
-    return new TypeDec(name, fields);
-
-}
-
-
-TypeDecList* Parser::parseTypeDecList() {
-    auto* l = new TypeDecList();
-    if (!match(Token::TYPE)) return l;
-
-
-    while (check(Token::ID)) {
-        TypeDec* t = parseTypeDec();
-        if (t) l->add(t);
-    }
-
-    return l;
-}
 
 
 

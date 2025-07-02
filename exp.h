@@ -8,17 +8,13 @@
 
 using namespace std;
 
-/* ======================== Adelantos de clases ========================= */
-class Visitor;      // interfaz de visitantes
-class Body;         // adelante porque se usa en If/While antes de definirse
+class Visitor;      
+class Body;         
 
-/* ======================== Operadores binarios ======================== */
 enum BinaryOp { PLUS_OP, MINUS_OP, MUL_OP, DIV_OP,
                 LT_OP,   LE_OP,    EQ_OP, GT_OP, GE_OP};
 
-/* ===================================================================== */
-/*                           EXPRESIONES                                 */
-/* ===================================================================== */
+
 class Exp {
 public:
     string type;
@@ -27,7 +23,6 @@ public:
     static string binopToChar(BinaryOp);
 };
 
-/* --------- ifexp(cond, a, b)  (compatibilidad) ---------------------- */
 class IFExp : public Exp {
 public:
     Exp *cond, *left, *right;
@@ -36,7 +31,6 @@ public:
     float accept(Visitor*) override;
 };
 
-/* --------- a + b, a < b, … ----------------------------------------- */
 class BinaryExp : public Exp {
 public:
     Exp *left, *right;
@@ -46,7 +40,6 @@ public:
     float accept(Visitor*) override;
 };
 
-/* --------- literales ------------------------------------------------- */
 class NumberExp : public Exp {
 public:
     int value;
@@ -66,7 +59,7 @@ public:
 
 class BoolExp : public Exp {
 public:
-    int value;                /* 1 = true / 0 = false */
+    int value;               
     explicit BoolExp(bool v);
     ~BoolExp();
     float accept(Visitor*) override;
@@ -80,19 +73,15 @@ public:
     float accept(Visitor*) override;
 };
 
-/* --------- llamada a función ---------------------------------------- */
 class FCallExp : public Exp {
 public:
     string     nombre;
     list<Exp*> argumentos;
     FCallExp() = default;
-    ~FCallExp() override = default;     /* nada que destruir: se libera visitante */
+    ~FCallExp() override = default;     
     float accept(Visitor*) override;
 };
 
-/* ===================================================================== */
-/*                            SENTENCIAS                                 */
-/* ===================================================================== */
 class Stm {
 public:
     virtual int accept(Visitor*) = 0;
@@ -157,20 +146,18 @@ public:
     int accept(Visitor*) override;
 };
 
-/* ===================================================================== */
-/*                    DECLARACIONES, LISTAS, BLOQUES                     */
-/* ===================================================================== */
+
 class RecordTAssignStatement : public Stm  {
 public:
-    string base;       // Ej: d en d.x
-    string field;    // Ej: x en d.x
-
+    string base;      
+    string field;   
     Exp*   val;
     RecordTAssignStatement(const string& base, const string& field,Exp* val);
     ~RecordTAssignStatement() ;
 
     int accept(Visitor* v) override;
 };
+
 class RecordTIdentifierExp : public Exp {
 public:
     string base;
@@ -183,15 +170,15 @@ public:
 
 class RecordVarDec {
 public:
-    string  atribute;
-    string      type;
+    string atribute;
+    string type;
     RecordVarDec(string, string);
     ~RecordVarDec();
     int accept(Visitor*);
 };
 class TypeDec {
 public:
-    string name; //name class
+    string name;  
     vector<RecordVarDec*> atributs;
     TypeDec(string name, vector<RecordVarDec*> atributs);
     ~TypeDec();
@@ -210,7 +197,7 @@ public:
 
 class VarDec {
 public:
-    string      type;
+    string type;
     list<string> vars;
     VarDec(string, list<string>);
     ~VarDec();
@@ -239,22 +226,20 @@ public:
 
 class Body {
 public:
-    VarDecList*    vardecs;
+    VarDecList* vardecs;
     StatementList* slist;
     Body(VarDecList*, StatementList*);
     ~Body();
     int accept(Visitor*);
 };
 
-/* ===================================================================== */
-/*                           FUNCIONES                                   */
-/* ===================================================================== */
+ 
 class FunDec {
 public:
-    string nombre;                 /* id de la función        */
-    string tipo;                   /* tipo de retorno         */
-    list<string> parametros;       /* ids de parámetros       */
-    list<string> tipos;            /* tipos de parámetros     */
+    string nombre;                 
+    string tipo;                   
+    list<string> parametros;       
+    list<string> tipos;           
     Body* cuerpo {nullptr};
 
     FunDec() = default;
@@ -266,19 +251,17 @@ class FunDecList {
 public:
     list<FunDec*> Fundecs;
     void add(FunDec* f){ Fundecs.push_back(f); }
-    ~FunDecList() = default;            /* se destruye en visitor  */
+    ~FunDecList() = default;             
     int accept(Visitor*);
 };
 
-/* ===================================================================== */
-/*                              PROGRAMA                                 */
-/* ===================================================================== */
+ 
 class Program {
 public:
-    TypeDecList*   typeDecList{nullptr}; /* declaraciones de Struct */
-    VarDecList*    vardecs  {nullptr};   /* variables globales */
-    FunDecList*    fundecs  {nullptr};   /* funciones          */
-    Body*          mainBody {nullptr};   /* bloque begin … end */
+    TypeDecList*   typeDecList{nullptr};  
+    VarDecList*    vardecs  {nullptr};    
+    FunDecList*    fundecs  {nullptr};   
+    Body*          mainBody {nullptr};   
 };
 
-#endif  /* EXP_H */
+#endif   

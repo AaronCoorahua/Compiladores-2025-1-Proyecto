@@ -3,50 +3,53 @@
 
 #include "scanner.h"
 #include "exp.h"
-#include <list>     /* necesitado por los métodos privados */
+#include <list>   
 
 class Parser {
 
 private:
 
 
-    /*——————  estado ——————*/
     Scanner* scanner;
     Token*   current  {nullptr};
     Token*   previous {nullptr};
 
-    /*——————  utilidades ——————*/
     bool match  (Token::Type);
     bool check  (Token::Type);
     bool advance();
     bool isAtEnd();
 
-    /*——————  sub-parsers ——————*/
-    VarDec*        parseVarDec();
-    VarDecList*    parseVarDecList();
+    VarDec* parseVarDec();
+    VarDecList* parseVarDecList();
 
-    TypeDec*       parseTypeDec();
-    TypeDecList*   parseTypeDecList();
+    TypeDec* parseTypeDec();
+    TypeDecList* parseTypeDecList();
 
 
-    FunDec*        parseFunDec();
-    FunDecList*    parseFunDecList();
+    FunDec* parseFunDec();
+    FunDecList* parseFunDecList();
 
-    Body*          parseBody();
-    Body*          parseBlockOrStmt();
+    void parseParamList(FunDec* f); 
+    void parseParam(FunDec* f);    
+
+    Body* parseBody();
+    Body* parseBlockOrStmt();
 
     StatementList* parseStatementList();
-    Stm*           parseStatement();
+    Stm* parseStatement();
 
-    Exp*           parseCExp();
-    Exp*           parseExpression();
-    Exp*           parseTerm();
-    Exp*           parseFactor();
+    Exp* parseCExp();
+    Exp* parseExpression();
+    Exp* parseTerm();
+    Exp* parseFactor();
 
-    vector<RecordVarDec*>  parseFieldList();
+    vector<RecordVarDec*> parseFieldList();
+
+    std::vector<RecordVarDec*> parseRecordType();
+
 public:
     explicit Parser(Scanner*);
     Program* parseProgram();
 };
 
-#endif  /* PARSER_H */
+#endif 

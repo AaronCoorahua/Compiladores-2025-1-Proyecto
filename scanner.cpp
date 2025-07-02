@@ -1,6 +1,6 @@
 #include "scanner.h"
 #include <iostream>
-#include <cstring>   /* strchr */
+#include <cstring>  
 using namespace std;
 
 static inline bool is_ws(char c)
