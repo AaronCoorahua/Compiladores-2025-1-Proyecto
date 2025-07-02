@@ -48,7 +48,4 @@ Factor         ::= id
 		        | id '.' id
 
 
-
-
-
 ArgList        ::= CExp (',' CExp)*
