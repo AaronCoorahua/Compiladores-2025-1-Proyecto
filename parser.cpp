@@ -4,7 +4,7 @@
 
 using namespace std;
 
-/*──────────────────── utilidades ────────────────────*/
+
 bool Parser::match(Token::Type t){
     if (check(t)){ advance(); return true; }
     return false;
@@ -27,7 +27,7 @@ bool Parser::advance(){
     return true;
 }
 
-/*────────────── constructor ──────────────*/
+
 Parser::Parser(Scanner* sc):scanner(sc){
     current = scanner->nextToken();
     if (current->type == Token::ERR){
@@ -36,40 +36,39 @@ Parser::Parser(Scanner* sc):scanner(sc){
     }
 }
 
-/*──────────────── vars ────────────────*/
+
 VarDec* Parser::parseVarDec(){
 
 
     list<string> ids;
-    match(Token::ID);                 // ❶ primer id
+    match(Token::ID);                 
     ids.push_back(previous->text);
     while (match(Token::COMA)){
         match(Token::ID); ids.push_back(previous->text);
     }
 
-    match(Token::COLON);              // ❷ ‘:’
-    match(Token::ID);                 // ❸ tipo
+    match(Token::COLON);            
+    match(Token::ID);                 
     string type = previous->text;
     match(Token::PC);
-    // ‘;’
     return new VarDec(type, ids);
 }
 VarDecList* Parser::parseVarDecList(){
     auto* v = new VarDecList();
 
     if (!match(Token::VAR)) return v;
-    while (check(Token::ID)) {         // ← solo entramos si hay un ID (inicio de var)
+    while (check(Token::ID)) {         
         VarDec* d = parseVarDec();
         if (d) v->add(d);
     }
     return v;
 }
 
-/*──────────────── cuerpos ───────────────*/
+
 StatementList* Parser::parseStatementList(){
     auto* sl = new StatementList();
     sl->add(parseStatement());
-    while (match(Token::PC)){                       // ‘;’
+    while (match(Token::PC)){                  
         if (check(Token::END_KW) || check(Token::ELSE)) break;
         sl->add(parseStatement());
     }
@@ -83,18 +82,18 @@ Body* Parser::parseBody(){
     return new Body(v,s);
 }
 
-/*──────────────── programa ──────────────*/
+
 Program* Parser::parseProgram(){
     auto* p = new Program();
 
-    if (match(Token::PROGRAM)){     // encabezado opcional
+    if (match(Token::PROGRAM)){   
         match(Token::ID);  match(Token::PC);
     }
     p->typeDecList= parseTypeDecList();
     p->vardecs  = parseVarDecList();
     p->fundecs  = parseFunDecList();
 
-    if (!p->fundecs) p->fundecs = new FunDecList();  // si no hay funciones
+    if (!p->fundecs) p->fundecs = new FunDecList();  
     p->mainBody = parseBody();
     match(Token::DOT);
 
@@ -104,11 +103,11 @@ Program* Parser::parseProgram(){
     return p;
 }
 
-/*──────────────── funciones ─────────────*/
+
 FunDecList* Parser::parseFunDecList(){
     auto* l = new FunDecList();
     while (true){
-        while (match(Token::PC));                   // ‘;’ sueltos
+        while (match(Token::PC));                 
         FunDec* f = parseFunDec();
         if (!f) break;
         l->add(f);
@@ -120,9 +119,9 @@ FunDec* Parser::parseFunDec(){
 
     auto* f = new FunDec();
 
-    match(Token::ID);  f->nombre = previous->text;  // nombre
+    match(Token::ID);  f->nombre = previous->text; 
 
-    /* parámetros */
+
     match(Token::PI);
     if (!check(Token::PD)){
         do{
@@ -134,26 +133,26 @@ FunDec* Parser::parseFunDec(){
             match(Token::ID); string ptype = previous->text;
 
             for (auto& id: ids){ f->parametros.push_back(id); f->tipos.push_back(ptype); }
-        } while (match(Token::PC));                 // ‘;’ entre grupos
+        } while (match(Token::PC));                
     }
-    match(Token::PD);                               // )
+    match(Token::PD);                           
 
-    /* tipo de retorno */
+
     match(Token::COLON);
     match(Token::ID);  f->tipo = previous->text;
-    match(Token::PC);                               // ;
+    match(Token::PC);                           
 
-    /* cuerpo */
+
     f->cuerpo = parseBody();
-    match(Token::PC);                               // ; que cierra la función
+    match(Token::PC);                              
 
     return f;
 }
 
-/*──────────────── sentencias ─────────────*/
+
 Stm* Parser::parseStatement(){
 
-    /* id := expresión */
+
     if (match(Token::ID)){
 
         string id = previous->text;
@@ -178,7 +177,7 @@ Stm* Parser::parseStatement(){
     }
 
 
-    /* writeln( exp ) */
+
     if (match(Token::WRITELN)){
         match(Token::PI);
         Exp* e = parseCExp();
@@ -186,7 +185,6 @@ Stm* Parser::parseStatement(){
         return new PrintStatement(e);
     }
 
-    /* return( exp ) */
     if (match(Token::RETURN)){
         auto* rs = new ReturnStatement();
         match(Token::PI);
@@ -195,7 +193,7 @@ Stm* Parser::parseStatement(){
         return rs;
     }
 
-    /* if … then … [else …]        (¡ya NO se pide ‘end’ extra!) */
+
     if (match(Token::IF)){
         Exp*  cond  = parseCExp();  match(Token::THEN);
         Body* thenB = parseBlockOrStmt();
@@ -204,7 +202,7 @@ Stm* Parser::parseStatement(){
         return new IfStatement(cond, thenB, elseB);
     }
 
-    /* while … do … end */
+
     if (match(Token::WHILE)){
         Exp* cond = parseCExp(); match(Token::DO);
         Body* body = parseBlockOrStmt();
@@ -231,7 +229,7 @@ Stm* Parser::parseStatement(){
     exit(1);
 }
 
-/*──────────────── expresiones ────────────*/
+
 Exp* Parser::parseCExp(){
     Exp* left = parseExpression();
     if ( match(Token::LT) || match(Token::LE) ||
@@ -292,7 +290,7 @@ Exp* Parser::parseFactor() {
             return call;
         }
 
-        if (match(Token::DOT)) {//a.b -> sacara el valor  o a.b := asingar
+        if (match(Token::DOT)) {
             match(Token::ID);
             string field = previous->text;
 
@@ -313,13 +311,12 @@ Exp* Parser::parseFactor() {
 }
 
 Body* Parser::parseBlockOrStmt() {
-    if (check(Token::BEGIN_KW))          // begin … end
+    if (check(Token::BEGIN_KW))       
         return parseBody();
 
-    /* sentencia simple ⇒ la envolvemos en Body vacío */
-    auto* v  = new VarDecList();         // sin var-decs
+    auto* v  = new VarDecList();        
     auto* sl = new StatementList();
-    sl->add( parseStatement() );         // solo UNA sentencia
+    sl->add( parseStatement() );         
     return new Body(v, sl);
 }
 
@@ -347,7 +344,7 @@ TypeDecList* Parser::parseTypeDecList() {
     auto* l = new TypeDecList();
     if (!match(Token::TYPE)) return l;
 
-    // Procesa múltiples definiciones
+
     while (check(Token::ID)) {
         TypeDec* t = parseTypeDec();
         if (t) l->add(t);
@@ -358,21 +355,12 @@ TypeDecList* Parser::parseTypeDecList() {
 
 
 
-
-// … arriba en parser.cpp, tras los includes …
-
-//------------------------------------------------------------------------------
-// parseFieldList: lee tantas líneas de campos como haya antes de 'end'
-// Cada línea tiene la forma:
-//     id1, id2, … : Tipo;
-// Y genera un RecordVarDec por cada id.
-//------------------------------------------------------------------------------
 std::vector<RecordVarDec*> Parser::parseFieldList() {
     std::vector<RecordVarDec*> fields;
 
-    // Mientras veamos un identificador seguimos leyendo campos
+    
     while (current->type == Token::ID) {
-        // 1) Leer lista de nombres separados por coma
+   
         std::list<std::string> names;
         names.push_back(current->text);
         match(Token::ID);
@@ -382,15 +370,15 @@ std::vector<RecordVarDec*> Parser::parseFieldList() {
             match(Token::ID);
         }
 
-        // 2) Leer ':' y luego el nombre del tipo
+     
         match(Token::COLON);
         std::string fieldType = current->text;
         match(Token::ID);
 
-        // 3) Consumir ';'
+
         match(Token::PC);
 
-        // 4) Crear un RecordVarDec por cada nombre
+   
         for (auto& nm : names) {
             fields.push_back(new RecordVarDec(nm, fieldType));
         }

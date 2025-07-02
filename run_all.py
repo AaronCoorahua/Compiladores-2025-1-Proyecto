@@ -48,7 +48,7 @@ def run_tests():
     ASSEMBLY_DIR.mkdir(exist_ok=True)
     OUTPUTS_DIR.mkdir(exist_ok=True)
 
-    for txt_file in TEST_CASES_DIR.glob("*.txt"):
+    for txt_file in TEST_CASES_DIR.glob("*.pas"):
         print(f"🧪 Procesando {txt_file.name}...")
 
         # Ejecutar compilador Pascal

@@ -255,7 +255,7 @@ class PascalFrontend(QWidget):
 
             input_name = os.path.basename(self.current_file_path)
             temp_input_path = os.path.join("project", input_name)
-            output_s_path = os.path.join("project", "build", input_name.replace(".txt", ".s"))
+            output_s_path = os.path.join("project", "build", input_name.replace(".pas", ".s"))
 
             exe_path = "build/Debug/Proyecto.exe" if os.name == 'nt' else "./build/Proyecto"
             subprocess.run([exe_path, temp_input_path, "--frontend"], check=True)

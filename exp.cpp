@@ -3,9 +3,6 @@
 
 using namespace std;
 
-/* ===================================================================== */
-/*                    Constructores / destructores                       */
-/* ===================================================================== */
 IFExp::IFExp(Exp* c, Exp* l, Exp* r) : cond(c), left(l), right(r) {}
 
 
@@ -26,7 +23,6 @@ FloatExp::~FloatExp()  = default;
 BoolExp::~BoolExp()      = default;
 IdentifierExp::~IdentifierExp() = default;
 
-/* liberar sub-árboles donde hace falta */
 BinaryExp::~BinaryExp() { delete left; delete right; }
 IFExp::~IFExp()         { delete cond; delete left; delete right; }
 
@@ -51,7 +47,6 @@ ForStatement::~ForStatement() {
     delete body;
 }
 
-/* ---------------------------- Var-Decs ------------------------------- */
 VarDec::VarDec(string t, list<string> v)
         : type(move(t)), vars(move(v)) {}
 VarDec::~VarDec() = default;
@@ -62,25 +57,15 @@ VarDecList::~VarDecList(){
     for (auto v: vardecs) delete v;
 }
 
-/* -------------------------- StatementList ---------------------------- */
 StatementList::StatementList() = default;
 void StatementList::add(Stm* s){ stms.push_back(s); }
 StatementList::~StatementList(){
     for (auto s: stms) delete s;
 }
 
-/* ------------------------------- Body -------------------------------- */
 Body::Body(VarDecList* v, StatementList* s): vardecs(v), slist(s) {}
 Body::~Body(){ delete vardecs; delete slist; }
 
-/* ===================================================================== */
-/*                dispatches accept()   (definidos inline)               */
-/* ===================================================================== */
-/* (todos los accept() simples se definen en visitor.cpp) */
-
-/* ===================================================================== */
-/*              utilidad: conversión de enumeración a string             */
-/* ===================================================================== */
 string Exp::binopToChar(BinaryOp op)
 {
     switch(op){

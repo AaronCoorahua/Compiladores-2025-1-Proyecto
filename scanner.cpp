@@ -3,23 +3,19 @@
 #include <cstring>   /* strchr */
 using namespace std;
 
-/*----------- util: blancos ----------------------------------------------*/
 static inline bool is_ws(char c)
 {
     return c==' ' || c=='\t' || c=='\n' || c=='\r';
 }
 
-/*----------- nextToken ---------------------------------------------------*/
 Token* Scanner::nextToken()
 {
-    /* saltar espacios -------------------------------------------------- */
     while (current < (int)input.size() && is_ws(input[current])) ++current;
     if (current >= (int)input.size()) return new Token(Token::END);
 
     char c  = input[current];
     first   = current;
 
-    /*---------- número --------------------------------------------------*/
     if (isdigit(c)) {
         bool hasDot = false;
         while (current < (int)input.size() && (isdigit(input[current]) || (!hasDot && input[current] == '.'))) {
@@ -32,39 +28,34 @@ Token* Scanner::nextToken()
             return new Token(Token::NUM, input, first, current - first);
     }
 
-    /*---------- palabra / identificador --------------------------------*/
     if (isalpha(c))
     {
         while (current < (int)input.size() && isalnum(input[++current]));
         string w = input.substr(first, current-first);
 
-        /* tabla de palabras-clave */
-#define KW(str, tk) if (w == str) return new Token(tk, w, 0, w.size());
-        KW("program" , Token::PROGRAM)
-        KW("var"     , Token::VAR)
-        KW("function", Token::FUNCTION)
-        KW("begin"   , Token::BEGIN_KW)
-        KW("end"     , Token::END_KW)
-        KW("writeln" , Token::WRITELN)
-        KW("if"      , Token::IF)
-        KW("then"    , Token::THEN)
-        KW("else"    , Token::ELSE)
-        KW("while"   , Token::WHILE)
-        KW("do"      , Token::DO)
-        KW("for",    Token::FOR)
-        KW("to",     Token::TO)
-        KW("downto", Token::DOWNTO)
-        KW("true"    , Token::TRUE)
-        KW("false"   , Token::FALSE)
-        KW("return"  , Token::RETURN)
-        KW("type"  , Token::TYPE)
-        KW("record"  , Token::RECORD)
-#undef  KW
-        /* no es palabra reservada ⇒ identificador */
-        return new Token(Token::ID, w, 0, w.size());
+        if      (w == "program") return new Token(Token::PROGRAM, w, 0, w.size());
+        else if (w == "var") return new Token(Token::VAR, w, 0, w.size());
+        else if (w == "function") return new Token(Token::FUNCTION, w, 0, w.size());
+        else if (w == "begin") return new Token(Token::BEGIN_KW, w, 0, w.size());
+        else if (w == "end") return new Token(Token::END_KW, w, 0, w.size());
+        else if (w == "writeln") return new Token(Token::WRITELN,  w, 0, w.size());
+        else if (w == "if") return new Token(Token::IF, w, 0, w.size());
+        else if (w == "then") return new Token(Token::THEN, w, 0, w.size());
+        else if (w == "else") return new Token(Token::ELSE, w, 0, w.size());
+        else if (w == "while") return new Token(Token::WHILE, w, 0, w.size());
+        else if (w == "do") return new Token(Token::DO, w, 0, w.size());
+        else if (w == "for") return new Token(Token::FOR, w, 0, w.size());
+        else if (w == "to") return new Token(Token::TO, w, 0, w.size());
+        else if (w == "downto") return new Token(Token::DOWNTO, w, 0, w.size());
+        else if (w == "true") return new Token(Token::TRUE, w, 0, w.size());
+        else if (w == "false") return new Token(Token::FALSE, w, 0, w.size());
+        else if (w == "return") return new Token(Token::RETURN, w, 0, w.size());
+        else if (w == "type") return new Token(Token::TYPE, w, 0, w.size());
+        else if (w == "record") return new Token(Token::RECORD, w, 0, w.size());
+        else return new Token(Token::ID, w, 0, w.size());
+
     }
 
-    /*---------- símbolos de un carácter (+-/() etc.) ------------------*/
     if (strchr("+-*/()<>;,.", c) || c == ':' || c == '=' )
     {
         switch (c)
@@ -85,20 +76,17 @@ Token* Scanner::nextToken()
                 { current += 2; return new Token(Token::LE , "<=", 0, 2); }
                 current++; return new Token(Token::LT, c);
 
-            /* comparadores > >=  */
             case '>':
                 if (current+1 < (int)input.size() && input[current+1]=='=')
                 { current += 2; return new Token(Token::GE , "<=", 0, 2); }
             current++; return new Token(Token::GT, c);
 
-            /* == como operador de igualdad (opcional) */
             case '=':
 
                 if (current+1 < (int)input.size() && input[current+1]=='=')
                 { current += 2; return new Token(Token::EQ , "==", 0, 2); }
                 else { current++; return new Token(Token::ASSIGN, '='); };
 
-            /*  ':' o ':='  */
             case ':':
                 if (current+1 < (int)input.size() && input[current+1]=='=')
                 { current += 2; return new Token(Token::ASSIGN, ":=", 0, 2); }
@@ -106,12 +94,10 @@ Token* Scanner::nextToken()
         }
     }
 
-    /* carácter desconocido -------------------------------------------- */
     current++;
     return new Token(Token::ERR, c);
 }
 
-/*----------- depuración --------------------------------------------------*/
 void test_scanner(Scanner* sc)
 {
     cout << "--- TOKENS ---\n";

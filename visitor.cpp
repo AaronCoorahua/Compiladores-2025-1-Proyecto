@@ -9,26 +9,27 @@ static std::unordered_map<std::string,std::string> literalLabelMap;
 
 using namespace std;
 
-/* ─────────────────── Despachos accept() generados ──────────────────── */
-/* expresiones */
-float BinaryExp     ::accept(Visitor* v){ return v->visit(this); }
-float NumberExp     ::accept(Visitor* v){ return v->visit(this); }
-float FloatExp     ::accept(Visitor* v){ return v->visit(this); }
-float BoolExp       ::accept(Visitor* v){ return v->visit(this); }
+
+// Expresiones
+float BinaryExp ::accept(Visitor* v){ return v->visit(this); }
+float NumberExp ::accept(Visitor* v){ return v->visit(this); }
+float FloatExp ::accept(Visitor* v){ return v->visit(this); }
+float BoolExp ::accept(Visitor* v){ return v->visit(this); }
 float IdentifierExp ::accept(Visitor* v){ return v->visit(this); }
-float IFExp         ::accept(Visitor* v){ return v->visit(this); }
-float FCallExp      ::accept(Visitor* v){ return v->visit(this); }
+float IFExp ::accept(Visitor* v){ return v->visit(this); }
+float FCallExp ::accept(Visitor* v){ return v->visit(this); }
 float RecordTIdentifierExp::accept(Visitor * v){ return v->visit(this); }
 
-/* sentencias */
+// Sentencias
 int AssignStatement ::accept(Visitor* v){ v->visit(this); return 0; }
-int PrintStatement  ::accept(Visitor* v){ v->visit(this); return 0; }
-int IfStatement     ::accept(Visitor* v){ v->visit(this); return 0; }
-int ForStatement    ::accept(Visitor* v){ v->visit(this); return 0; }
-int WhileStatement  ::accept(Visitor* v){ v->visit(this); return 0; }
+int PrintStatement ::accept(Visitor* v){ v->visit(this); return 0; }
+int IfStatement ::accept(Visitor* v){ v->visit(this); return 0; }
+int ForStatement ::accept(Visitor* v){ v->visit(this); return 0; }
+int WhileStatement ::accept(Visitor* v){ v->visit(this); return 0; }
 int ReturnStatement ::accept(Visitor* v){ v->visit(this); return 0; }
 int RecordTAssignStatement::accept(Visitor *v) { v->visit(this); return 0;}
-/* listas / cuerpos */
+
+// List | Body
 int VarDec       ::accept(Visitor* v){ v->visit(this); return 0; }
 int VarDecList   ::accept(Visitor* v){ v->visit(this); return 0; }
 int StatementList::accept(Visitor* v){ v->visit(this); return 0; }
@@ -37,13 +38,13 @@ int TypeDecList  ::accept(Visitor *v){ v->visit(this); return 0; }
 
 int TypeDec      ::accept(Visitor *v){ v->visit(this); return 0; }
 int RecordVarDec::accept(Visitor *v){ v->visit(this); return 0; }
-/* funciones */
+
+// Funciones
 int FunDec     ::accept(Visitor* v){ v->visit(this); return 0; }
 int FunDecList ::accept(Visitor* v){ v->visit(this); return 0; }
 
-/* ===================================================================== */
-/*                          PrintVisitor                                 */
-/* ===================================================================== */
+// PRINT VISITOR
+
 float PrintVisitor::visit(BinaryExp* e){
     e->left->accept(this);
     cout << ' ' << Exp::binopToChar(e->op) << ' ';
@@ -54,7 +55,6 @@ float PrintVisitor::visit(NumberExp* e){ cout << e->value; return 0; }
 
 float PrintVisitor::visit(FloatExp* e)  { cout << fixed << setprecision(2) << e->value; return e->value; }
 
-
 float PrintVisitor::visit(BoolExp*   e){ cout << (e->value ? "true":"false"); return 0; }
 float PrintVisitor::visit(IdentifierExp* e){ cout << e->name; return 0; }
 float PrintVisitor::visit(IFExp* e){
@@ -64,6 +64,7 @@ float PrintVisitor::visit(IFExp* e){
     e->right->accept(this); cout << ")";
     return 0;
 }
+
 float PrintVisitor::visit(FCallExp* e) {
     cout << e->nombre << "(";
     for (auto i : e->argumentos){
@@ -74,7 +75,8 @@ float PrintVisitor::visit(FCallExp* e) {
     return 0;
 }
 
-/* sentencias */
+// Sentencias
+
 void PrintVisitor::visit(AssignStatement* s) {
     if (auto* id = dynamic_cast<IdentifierExp*>(s->lhs)) {
         cout << id->name << " := ";
@@ -90,7 +92,6 @@ void PrintVisitor::visit(PrintStatement* s){
     cout << "writeln("; s->e->accept(this); cout << ");";
 }
 
-// Se evita el punto y coma antes de ELSE usando bloques begin..end
 void PrintVisitor::visit(IfStatement* s){
 
     cout << getIndent();
@@ -109,16 +110,17 @@ void PrintVisitor::visit(IfStatement* s){
         nivel_indentacion++;
         s->els->accept(this);
         nivel_indentacion--;
-        cout << endl << "end";        // cierra bloque if con else
+        cout << endl << "end";       
     }
 }
+
 void PrintVisitor::visit(WhileStatement* s){
     cout << "while "; s->condition->accept(this); cout << " do" << endl;
     s->b->accept(this); cout << "end";
 }
+
 void PrintVisitor::visit(ReturnStatement*){}
 
-/* bloques y listas */
 void PrintVisitor::visit(VarDec* v){
     for (auto it=v->vars.begin(); it!=v->vars.end(); ++it){
         if (it!=v->vars.begin()) cout << ", ";
@@ -126,24 +128,28 @@ void PrintVisitor::visit(VarDec* v){
     }
     cout << " : " << v->type << ";";
 }
+
 void PrintVisitor::visit(VarDecList* v){
     if (v->vardecs.empty()) return;
     cout << "var" << endl;
     for (auto d:v->vardecs){ cout << "  "; d->accept(this); cout << endl; }
 }
+
 void PrintVisitor::visit(StatementList* s){
     for (auto st:s->stms){
         cout << getIndent();
         st->accept(this);
         cout << endl; }
 }
+
 void PrintVisitor::visit(Body* b){
     b->vardecs->accept(this);
     if (!b->vardecs->vardecs.empty()) cout << endl;
     b->slist->accept(this);
 }
 
-/* funciones */
+// Funciones
+
 void PrintVisitor::visit(FunDec* f){
     cout << "function " << f->nombre << "(";
     for (auto t=f->tipos.begin(), p=f->parametros.begin();
@@ -160,7 +166,8 @@ void PrintVisitor::visit(FunDecList* l){
     for (auto f:l->Fundecs){ f->accept(this); cout << endl << endl; }
 }
 
-/* programa completo */
+// Programa
+
 void PrintVisitor::visit(Program* p){ imprimir(p); }
 void PrintVisitor::imprimir(Program* p){
     cout << "program out;" << endl << endl;
@@ -174,26 +181,21 @@ void PrintVisitor::imprimir(Program* p){
     cout << "end." << endl;
 }
 
-/* ===================================================================== */
-/*                          EVALVisitor                                  */
-/* ===================================================================== */
-
-// Se asume que EVALVisitor ahora tiene un miembro std::string currFun;
-// definido y puesto a "" en el constructor.
+// EVAL VISITOR
 
 float EVALVisitor::visit(BinaryExp* e){
     float v1=e->left->accept(this), v2=e->right->accept(this);
     switch(e->op){
         case PLUS_OP : return v1+v2;
         case MINUS_OP: return v1-v2;
-        case MUL_OP  : return v1*v2;
-        case DIV_OP  : return v2? v1/v2 : (cerr<<"Div/0\n",0);
-        case LT_OP   : return v1 < v2;
-        case LE_OP   : return v1 <= v2;
-        case EQ_OP   : return v1 == v2;
+        case MUL_OP : return v1*v2;
+        case DIV_OP : return v2? v1/v2 : (cerr<<"Div/0\n",0);
+        case LT_OP : return v1 < v2;
+        case LE_OP : return v1 <= v2;
+        case EQ_OP : return v1 == v2;
         case GT_OP : return v1 >  v2;
         case GE_OP : return v1 >= v2;
-        default      : return 0;
+        default : return 0;
     }
 }
 float EVALVisitor::visit(NumberExp* e){ return e->value; }
@@ -222,18 +224,12 @@ float EVALVisitor::visit(FCallExp* e) {
         exit(1);
     }
 
-    // Crear nuevo scope
     env.add_level();
-
-    // ❶ Registrar variable resultado como float
-    env.add_var(f->nombre, 0.0f, f->tipo);  // ← asegurarse que es float
-
-    // Guardar el nombre de la funcion actual
+    env.add_var(f->nombre, 0.0f, f->tipo);  
     string savedFun = currFun;
     currFun = f->nombre;
 
-    // Cargar parametros
-    auto pit = f->parametros.begin(), tit = f->tipos.begin();
+     auto pit = f->parametros.begin(), tit = f->tipos.begin();
     auto ait = e->argumentos.begin();
     for (; pit != f->parametros.end(); ++pit, ++tit, ++ait)
         env.add_var(*pit, (*ait)->accept(this), *tit);
@@ -246,7 +242,7 @@ float EVALVisitor::visit(FCallExp* e) {
         exit(1);
     }
 
-    float ret = retval;  // ← este 'retval' debe ser declarado como float
+    float ret = retval;
 
     env.remove_level();
     currFun = savedFun;
@@ -255,7 +251,6 @@ float EVALVisitor::visit(FCallExp* e) {
 }
 
 
-/* sentencias */
 void EVALVisitor::visit(PrintStatement* s){ cout << s->e->accept(this) << endl; }
 void EVALVisitor::visit(IfStatement* s){
     if (s->condition->accept(this))
@@ -273,7 +268,6 @@ void EVALVisitor::visit(ReturnStatement* s){
 }
 
 
-/* bloques */
 void EVALVisitor::visit(VarDec* v) {
     for (auto& id : v->vars) {
         if (type_registry.count(v->type)) {
@@ -293,11 +287,9 @@ void EVALVisitor::visit(Body* b){
     env.remove_level();
 }
 
-/* funciones */
 void EVALVisitor::visit(FunDec* f){ fdecs[f->nombre]=f; }
 void EVALVisitor::visit(FunDecList* l){ for (auto f:l->Fundecs) visit(f); }
 
-/* programa */
 void EVALVisitor::visit(Program* p){
     env.add_level();
     p->typeDecList->accept(this);
@@ -356,7 +348,7 @@ void EVALVisitor::visit(ForStatement* s){
     int ini  = s->start->accept(this);
     int fin  = s->end  ->accept(this);
 
-    env.add_level();                 // nivel local del bucle
+    env.add_level();               
     env.add_var(s->id, ini, "integer");
 
     if (!s->downto){
@@ -414,7 +406,6 @@ void EVALVisitor::visit(AssignStatement* stm) {
     if (auto* id = dynamic_cast<IdentifierExp*>(stm->lhs)) {
         string var = id->name;
 
-        // Detectar si estamos en una funcion y estamos haciendo: nombre_funcion := valor;
         if (!currFun.empty() && var == currFun) {
             retval = val;
             retcall = true;
@@ -429,7 +420,6 @@ void EVALVisitor::visit(AssignStatement* stm) {
         return;
     }
 
-    // En caso se use otra clase para acceso (como RecordTIdentifierExp), también manejarla
     if (auto* field = dynamic_cast<RecordTIdentifierExp*>(stm->lhs)) {
         if (!env.has_field(field->base, field->field)) {
             cerr << "Campo no declarado: " << field->base << "." << field->field << endl;
@@ -447,7 +437,7 @@ void EVALVisitor::visit(AssignStatement* stm) {
 
 
 
-//  --------TYPECHECKER_VISITOR---------
+//  VISITOR TYPECHECKER
 
 float TYPEVisitor::visit(BinaryExp* e) {
     e->left->accept(this);
@@ -502,8 +492,6 @@ void TYPEVisitor::visit(AssignStatement* stm) {
     }
 
     stm->rhs->accept(this);
-
-    // Caso especial: asignacion al nombre de la funcion → es valor de retorno
     if (id->name == currFun) {
         if (fdecs.count(currFun) == 0) {
             cerr << "[TYPE ERROR] Funcion no declarada: " << currFun << "\n";
@@ -609,7 +597,7 @@ float TYPEVisitor::visit(FCallExp* e) {
     auto arg_it = e->argumentos.begin();
     auto type_it = f->tipos.begin();
     for (; arg_it != e->argumentos.end(); ++arg_it, ++type_it) {
-        (*arg_it)->accept(this);  // Evalua tipo del argumento
+        (*arg_it)->accept(this); 
         if ((*arg_it)->type != *type_it) {
             cerr << "[TYPE ERROR] Tipo incorrecto en llamada a " << e->nombre
                  << ": se esperaba '" << *type_it << "', se recibio '" << (*arg_it)->type << "'\n";
@@ -633,7 +621,7 @@ float TYPEVisitor::visit(RecordTIdentifierExp* e) {
 
 
 void TYPEVisitor::visit(PrintStatement* s) {
-    s->e->accept(this);  // Verifica la expresion
+    s->e->accept(this);  
 
     if (s->e->type != "integer" && s->e->type != "real" && s->e->type != "boolean") {
         cerr << "[TYPE ERROR] writeln(...) solo acepta int, float o boolean\n";
@@ -663,7 +651,7 @@ void TYPEVisitor::visit(ForStatement* s) {
         exit(1);
     }
 
-    env.add_level();  // variable local del for
+    env.add_level();  
     env.add_var(s->id, "integer");
     s->body->accept(this);
     env.remove_level();
@@ -704,33 +692,27 @@ void TYPEVisitor::visit(ReturnStatement* s) {
 
 
 void TYPEVisitor::visit(RecordTAssignStatement* s) {
-    // Verificar que la variable del record existe
     if (!env.check(s->base)) {
         cout<<"RecordTAssignStatement"<<endl;
         cerr << "[TYPE ERROR] Variable no declarada: " << s->base << "\n";
         exit(1);
     }
 
-    // Verificar que el campo existe dentro del record
     if (!env.has_field(s->base, s->field)) {
         cerr << "[TYPE ERROR] Campo no declarado: " << s->base << "." << s->field << "\n";
         exit(1);
     }
 
-    // Evaluar la expresion del valor
     s->val->accept(this);
 
     string expected = env.get_field_type(s->base, s->field);
     string actual = s->val->type;
 
-
-    // Validar que se haya asignado el tipo correctamente
     if (actual.empty()) {
         cerr << "[TYPE ERROR] La expresion del valor no tiene tipo asignado\n";
         exit(1);
     }
 
-    // Comparar tipos
     if (expected != actual) {
         cerr << "[TYPE ERROR] Asignacion incompatible a campo " << s->base << "." << s->field
              << ": se esperaba " << expected << ", se recibio " << actual << "\n";
@@ -743,10 +725,8 @@ void TYPEVisitor::visit(RecordTAssignStatement* s) {
 void TYPEVisitor::visit(VarDec* vd) {
     for (auto& nombre : vd->vars) {
         if (type_registry.count(vd->type)) {
-            // Es un tipo RECORD
             env.add_record(nombre, type_registry[vd->type],  vd->type);
         } else {
-            // Variable simple
             env.add_var(nombre,  vd->type);
         }
     }
@@ -814,7 +794,6 @@ void TYPEVisitor::visit(FunDec* f) {
     fdecs[f->nombre] = f;
     env.add_level();
 
-    // registrar parametros
     auto pit = f->parametros.begin();
     auto tit = f->tipos.begin();
 
@@ -827,8 +806,6 @@ void TYPEVisitor::visit(FunDec* f) {
     currFun = "";
     env.remove_level();
 }
-
-
 
 
 void TYPEVisitor::visit(FunDecList* fdl) {
@@ -853,17 +830,17 @@ ConstCollector::ConstCollector(std::map<std::string, double>& fc,int& cnt): floa
 float ConstCollector::visit(FCallExp* e)
 {
     for (auto* arg : e->argumentos)
-        arg->accept(this);       // recorrer cada argumento
+        arg->accept(this);       
     return 0;
 }
 
 
 float ConstCollector::visit(FloatExp* e){
-    std::string key = std::to_string(e->value);          // <<<<<<
-    if(!floatConsts.count(key)){                         // guarda solo 1 vez
+    std::string key = std::to_string(e->value);         
+    if(!floatConsts.count(key)){                       
         std::string lbl = "LC" + std::to_string(floatLabelCount++);
         floatConsts[key] = e->value;
-        literalLabelMap[key] = lbl;                      // prepara el mapa
+        literalLabelMap[key] = lbl;                    
     }
     return 0;
 }
@@ -897,7 +874,6 @@ void ConstCollector::visit(Program* p) {
 }
 
 void ConstCollector::visit(RecordTAssignStatement* s) {
-    // Recorre el subárbol de la expresión derecha
     s->val->accept(this);
 }
 
@@ -907,15 +883,11 @@ CodeGenVisitor::CodeGenVisitor(std::ostream& output): out(output), floatLabelCou
 
 void CodeGenVisitor::generate(Program* p)
 {
-    registrarVariables(p);                    // 1) recoge vars globales
+    registrarVariables(p);                  
 
     if (p->typeDecList) p->typeDecList->accept(this);
-
-    /* ----------  CONSTANTES FLOAT  ---------- */
     ConstCollector collector(floatConsts, floatLabelCount);
-    collector.visit(p);                       // llena floatConsts  (key = string)
-
-    /* ----------  .data  ---------- */
+    collector.visit(p);                    
     out << ".data\n";
     out << "print_int_fmt:   .string \"%ld\\n\"\n";
     out << "print_float_fmt: .string \"%f\\n\"\n";
@@ -948,7 +920,6 @@ void CodeGenVisitor::generate(Program* p)
         << "  ret\n";
 }
 
-
 void CodeGenVisitor::registrarVariables(Program* p) {
     if (p->fundecs) {
         for (auto* f : p->fundecs->Fundecs) {
@@ -975,10 +946,8 @@ void CodeGenVisitor::visit(TypeDecList* tdl) {
 void CodeGenVisitor::visit(TypeDec* td) {
     int offset = 0;
     for (auto* field : td->atributs) {
-        // field->atribute = nombre, field->type = "real"|"integer"|otro
         recordFieldTypes[td->name][field->atribute] = field->type;
         recordLayouts[td->name][field->atribute] = offset;
-        // todos ocupan 8 bytes (double o quad)
         offset += 8;
     }
 }
@@ -1019,9 +988,7 @@ void CodeGenVisitor::visit(VarDec* v) {
             varTypes[name] = v->type;
             for(auto& [field, ftype]: recordFieldTypes[v->type]) {
                 std::string lbl = name + "." + field;
-                // aquí decides si es float (real) o entero
                 isFloatVar[lbl] = (ftype == "real");
-                // declaro espacio en .data
                 if(ftype == "real")
                     out<< lbl <<": .double 0.0\n";
                 else
@@ -1030,7 +997,6 @@ void CodeGenVisitor::visit(VarDec* v) {
         }
         return;
     }
-    // 2) si no es record, tu código previo:
     bool vf = (v->type == "real");
     for (auto& name : v->vars) {
         varTypes[name]   = v->type;
@@ -1098,7 +1064,7 @@ float CodeGenVisitor::visit(FCallExp* e) {
             }
         }
         else {
-            arg->accept(this);  // fallback
+            arg->accept(this);  
         }
         ++i;
     }
@@ -1113,8 +1079,8 @@ float CodeGenVisitor::visit(FCallExp* e) {
 float CodeGenVisitor::visit(BinaryExp* e)
 {
     auto isFloatOperand = [&](Exp* x) -> bool {
-        if (dynamic_cast<FloatExp*>(x))                       return true;
-        if (auto id  = dynamic_cast<IdentifierExp*>(x))       return isFloatVar[id->name];
+        if (dynamic_cast<FloatExp*>(x)) return true;
+        if (auto id  = dynamic_cast<IdentifierExp*>(x)) return isFloatVar[id->name];
         if (auto rec = dynamic_cast<RecordTIdentifierExp*>(x)) {
             return isFloatVar[rec->base + "." + rec->field];
         }
@@ -1200,15 +1166,15 @@ float CodeGenVisitor::visit(BinaryExp* e)
         << "popq %rax\n";
 
     switch (e->op) {
-        case PLUS_OP:  out << "addq %rbx, %rax\n"; break;
+        case PLUS_OP: out << "addq %rbx, %rax\n"; break;
         case MINUS_OP: out << "subq %rbx, %rax\n"; break;
-        case MUL_OP:   out << "imulq %rbx, %rax\n"; break;
-        case DIV_OP:   out << "cqto\nidivq %rbx\n"; break;
-        case GT_OP:    out << "cmpq %rbx, %rax\nsetg  %al\nmovzbq %al, %rax\n"; break;
-        case LT_OP:    out << "cmpq %rbx, %rax\nsetl  %al\nmovzbq %al, %rax\n"; break;
-        case GE_OP:    out << "cmpq %rbx, %rax\nsetge %al\nmovzbq %al, %rax\n"; break;
-        case LE_OP:    out << "cmpq %rbx, %rax\nsetle %al\nmovzbq %al, %rax\n"; break;
-        case EQ_OP:    out << "cmpq %rbx, %rax\nsete  %al\nmovzbq %al, %rax\n"; break;
+        case MUL_OP: out << "imulq %rbx, %rax\n"; break;
+        case DIV_OP: out << "cqto\nidivq %rbx\n"; break;
+        case GT_OP: out << "cmpq %rbx, %rax\nsetg  %al\nmovzbq %al, %rax\n"; break;
+        case LT_OP: out << "cmpq %rbx, %rax\nsetl  %al\nmovzbq %al, %rax\n"; break;
+        case GE_OP: out << "cmpq %rbx, %rax\nsetge %al\nmovzbq %al, %rax\n"; break;
+        case LE_OP: out << "cmpq %rbx, %rax\nsetle %al\nmovzbq %al, %rax\n"; break;
+        case EQ_OP: out << "cmpq %rbx, %rax\nsete  %al\nmovzbq %al, %rax\n"; break;
         default: break;
     }
     return 0;
@@ -1273,8 +1239,8 @@ void CodeGenVisitor::visit(PrintStatement* s)
 
     isFloatExpr = [&](Exp* x) -> bool
     {
-        if (dynamic_cast<FloatExp*>(x))                     return true;
-        if (auto id  = dynamic_cast<IdentifierExp*>(x))     return isFloatVar[id->name];
+        if (dynamic_cast<FloatExp*>(x)) return true;
+        if (auto id  = dynamic_cast<IdentifierExp*>(x)) return isFloatVar[id->name];
         if (auto rec = dynamic_cast<RecordTIdentifierExp*>(x))
             return isFloatVar[rec->base + "." + rec->field];
         if (auto be  = dynamic_cast<BinaryExp*>(x))
@@ -1387,7 +1353,7 @@ void CodeGenVisitor::visit(IfStatement* s) {
     std::string elseLabel = "else_" + std::to_string(id);
     std::string endLabel  = "endif_" + std::to_string(id);
 
-    s->condition->accept(this); // deja resultado en %rax
+    s->condition->accept(this);  
     out << "  cmpq $0, %rax\n";
     out << "  je " << elseLabel << "\n";
 
@@ -1405,8 +1371,7 @@ void CodeGenVisitor::visit(ForStatement* s) {
 
     std::string loopLabel = "for_loop_" + std::to_string(id);
     std::string endLabel  = "for_end_" + std::to_string(id);
-
-    // inicializar variable de control
+ 
     s->start->accept(this);
     out << "  movq %rax, " << s->id << "(%rip)\n";
 
@@ -1425,10 +1390,6 @@ void CodeGenVisitor::visit(ForStatement* s) {
     out << "  jmp " << loopLabel << "\n";
     out << endLabel << ":\n";
 }
-
-
-
-
 
 void CodeGenVisitor::visit(Program* p) {
     generate(p);

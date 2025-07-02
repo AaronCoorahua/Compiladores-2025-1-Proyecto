@@ -13,13 +13,12 @@ class RecordVarDec;
 
 class Environment {
 private:
-    vector<unordered_map<string, float>> levels;  // Almacena valores de variables
-    vector<unordered_map<string, string>> type_levels;  // Almacena tipos de variables
+    vector<unordered_map<string, float>> levels; 
+    vector<unordered_map<string, string>> type_levels;  
 
     unordered_map<string, unordered_map<string, double>> record_values;
     unordered_map<string, unordered_map<string, string>> record_types;
 
-    // Busca el nivel en el que está una variable
     int search_rib(string var) {
         int idx = levels.size() - 1;
         while (idx >= 0) {
@@ -119,11 +118,8 @@ public:
         return true;
     }
 
-    //----- STRUCTS NUEVOS -----//
     void add_record(string name, const vector<RecordVarDec*>& fields, string record_type) {
-        //cout << "[DEBUG] Registrando record: " << name << " con tipo base: " << record_type << endl;
         for (auto* f : fields) {
-            //cout << "[DEBUG] Campo recibido: " << f->atribute << " con tipo: [" << f->type << "]\n";
 
             record_values[name][f->atribute] = 0.0;
             record_types[name][f->atribute] = f->type;
