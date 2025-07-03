@@ -79,7 +79,7 @@ Token* Scanner::nextToken()
 
             case '>':
                 if (current+1 < (int)input.size() && input[current+1]=='=')
-                { current += 2; return new Token(Token::GE , "<=", 0, 2); }
+                { current += 2; return new Token(Token::GE , ">=", 0, 2); }
             current++; return new Token(Token::GT, c);
 
             case '=':

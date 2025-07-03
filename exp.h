@@ -264,4 +264,20 @@ public:
     Body*          mainBody {nullptr};   
 };
 
+class MethodCallExp : public Exp {
+public:
+  Exp* base;    
+  std::string method;  
+  std::vector<Exp*> args;    
+  MethodCallExp(Exp* b, const std::string& m, const std::vector<Exp*>& a)
+    : base(b), method(m), args(a) {}
+
+  ~MethodCallExp() override {
+    delete base;
+    for (auto* e : args) delete e;
+  }
+
+  float accept(Visitor* v) override;
+};
+
 #endif   

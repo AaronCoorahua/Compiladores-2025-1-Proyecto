@@ -8,7 +8,7 @@
 #include <string>
 #include <map>
 class BinaryExp;  class NumberExp; class FloatExp; class BoolExp;
-class IdentifierExp; class IFExp;   class FCallExp;
+class IdentifierExp; class IFExp;   class FCallExp; class MethodCallExp;
 class AssignStatement; class PrintStatement;
 class IfStatement; class WhileStatement; class ForStatement;
 class VarDec; class VarDecList; class StatementList; class Body;
@@ -30,6 +30,7 @@ public:
     virtual float visit(FCallExp*) = 0;
     virtual float visit(FloatExp*) = 0;
     virtual float  visit(RecordTIdentifierExp*) =0;
+    virtual float visit(MethodCallExp* e) = 0;
 
     virtual void visit(AssignStatement*) = 0;
     virtual void visit(PrintStatement*) = 0;
@@ -47,7 +48,7 @@ public:
     virtual void visit(TypeDec*) = 0;
     virtual void visit(RecordVarDec*) = 0;
 
-     virtual void visit(FunDec*) = 0;
+    virtual void visit(FunDec*) = 0;
     virtual void visit(FunDecList*) = 0;
     virtual void visit(Program*) = 0;   
 };
@@ -60,14 +61,16 @@ public:
     }
     void imprimir(Program*);
 
-    float  visit(BinaryExp*)      override;
-    float  visit(NumberExp*)      override;
+    float  visit(BinaryExp*) override;
+    float  visit(NumberExp*) override;
     float visit(FloatExp *) override;
-    float  visit(BoolExp*)        override;
+    float  visit(BoolExp*) override;
     float  visit(IdentifierExp*)  override;
-    float  visit(IFExp*)          override;
-    float  visit(FCallExp*)       override;
+    float  visit(IFExp*) override;
+    float  visit(FCallExp*) override;
     float  visit(RecordTIdentifierExp*) override;
+    float  visit(MethodCallExp*) override;
+
 
     void visit(AssignStatement*) override;
     void visit(PrintStatement*)  override;
@@ -108,6 +111,7 @@ public:
     float  visit(BinaryExp*) override;
     float  visit(NumberExp*) override;
     float  visit(RecordTIdentifierExp*) override;
+    float  visit(MethodCallExp*) override;
     float visit(FloatExp *) override;
     float  visit(BoolExp*) override;
     float  visit(IdentifierExp*) override;
@@ -146,53 +150,32 @@ public:
     TYPEVisitor() : currFun("") {}
 
     void visit(Program *) override;
-
     float visit(BinaryExp *) override;
-
     float visit(NumberExp *) override;
-
     float visit(FloatExp *) override;
-
     float visit(BoolExp *) override;
-
     float visit(IdentifierExp *) override;
-
     float visit(IFExp *) override;
-
     float visit(FCallExp *) override;
-
     float visit(RecordTIdentifierExp *) override;
+    float visit(MethodCallExp *) override;
+
 
     void visit(AssignStatement *) override;
-
     void visit(PrintStatement *) override;
-
     void visit(IfStatement *) override;
-
     void visit(ForStatement *) override;
-
     void visit(WhileStatement *) override;
-
     void visit(ReturnStatement *) override;
-
     void visit(RecordTAssignStatement *) override;
-
     void visit(VarDec *) override;
-
     void visit(VarDecList *) override;
-
     void visit(StatementList *) override;
-
     void visit(Body *) override;
-
     void visit(TypeDecList *) override;
-
     void visit(TypeDec *) override;
-
     void visit(RecordVarDec *) override;
-
     void visit(FunDec *) override;
-
     void visit(FunDecList *) override;
 };
 
@@ -229,6 +212,8 @@ public:
     void  visit(FunDec*) override;
     void  visit(FunDecList*) override;
     float visit(FCallExp*) override;
+    float visit(MethodCallExp *) override;
+
 
     float visit(BinaryExp*) override;
     float visit(NumberExp*) override;
@@ -285,6 +270,8 @@ public:
     float visit(IFExp*) override { return 0; }
     float visit(FCallExp*) override;
     float visit(RecordTIdentifierExp*) override { return 0; }
+    float visit(MethodCallExp*) override { return 0; }
+
     void  visit(IfStatement*) override {}
     void  visit(ForStatement*) override {}
     void  visit(WhileStatement*) override {}

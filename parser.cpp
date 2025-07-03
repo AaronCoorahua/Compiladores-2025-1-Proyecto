@@ -383,21 +383,36 @@ Exp* Parser::parseTerm(){
     return left;
 }
 
-//Factor         ::=  float
+//Factor         ::=  float | id ('.' id '(' ArgList? ')' | '.' id | '(' ArgList? ')' ) | '(' CExp ')'
 
 Exp* Parser::parseFactor() {
-    if (match(Token::TRUE))  return new BoolExp(1);
-    if (match(Token::FALSE)) return new BoolExp(0);
-    if (match(Token::NUM))   return new NumberExp(stoi(previous->text));
-    if (match(Token::NUM_FLOAT)) return new FloatExp(stof(previous->text));
-
-
+    if (match(Token::TRUE))   
+        return new BoolExp(1);
+    if (match(Token::FALSE))  
+        return new BoolExp(0);
+    if (match(Token::NUM))     
+        return new NumberExp(stoi(previous->text));
+    if (match(Token::NUM_FLOAT))
+        return new FloatExp(stof(previous->text));
     if (match(Token::ID)) {
         string name = previous->text;
         Exp* base = new IdentifierExp(name);
-
-
-        if (match(Token::PI)) {
+        if (match(Token::DOT)) {
+            match(Token::ID);
+            string member = previous->text;
+            if (match(Token::PI)) {
+                std::vector<Exp*> args;
+                if (!check(Token::PD)) {
+                    do {
+                        args.push_back(parseCExp());
+                    } while (match(Token::COMA));
+                }
+                match(Token::PD);
+                return new MethodCallExp(base, member, args);
+            }
+            return new RecordTIdentifierExp(name, member);
+        }
+        else if (match(Token::PI)) {
             auto* call = new FCallExp();
             call->nombre = name;
             if (!check(Token::PD)) {
@@ -408,26 +423,19 @@ Exp* Parser::parseFactor() {
             match(Token::PD);
             return call;
         }
-
-        if (match(Token::DOT)) {
-            match(Token::ID);
-            string field = previous->text;
-
-            base = new RecordTIdentifierExp(name, field);
-        }
-
         return base;
     }
-
     if (match(Token::PI)) {
         Exp* e = parseCExp();
         match(Token::PD);
         return e;
     }
 
-    cerr << "Factor inválido: " << *current <<" PREV: "<<previous->text<< endl;
+    cerr << "Factor inválido: " << *current
+         << "  PREV: " << (previous ? previous->text : "<none>") << endl;
     exit(1);
 }
+
 
 Body* Parser::parseBlockOrStmt() {
     if (check(Token::BEGIN_KW))       

@@ -19,6 +19,8 @@ float IdentifierExp ::accept(Visitor* v){ return v->visit(this); }
 float IFExp ::accept(Visitor* v){ return v->visit(this); }
 float FCallExp ::accept(Visitor* v){ return v->visit(this); }
 float RecordTIdentifierExp::accept(Visitor * v){ return v->visit(this); }
+float MethodCallExp::accept(Visitor * v){ return v->visit(this); }
+
 
 // Sentencias
 int AssignStatement ::accept(Visitor* v){ v->visit(this); return 0; }
@@ -1076,7 +1078,7 @@ float CodeGenVisitor::visit(BinaryExp* e)
 {
     auto isFloatOperand = [&](Exp* x) -> bool {
         if (dynamic_cast<FloatExp*>(x)) return true;
-        if (auto id  = dynamic_cast<IdentifierExp*>(x)) return isFloatVar[id->name];
+        if (auto id = dynamic_cast<IdentifierExp*>(x)) return isFloatVar[id->name];
         if (auto rec = dynamic_cast<RecordTIdentifierExp*>(x)) {
             return isFloatVar[rec->base + "." + rec->field];
         }
@@ -1086,95 +1088,162 @@ float CodeGenVisitor::visit(BinaryExp* e)
     bool leftF  = isFloatOperand(e->left);
     bool rightF = isFloatOperand(e->right);
 
-
     if (leftF || rightF)
     {
+        // cargar operando izquierdo en xmm0
         if (auto* fe = dynamic_cast<FloatExp*>(e->left)) {
-            std::string lbl = literalLabelMap[ std::to_string(fe->value) ];
+            std::string lbl = literalLabelMap[std::to_string(fe->value)];
             out << "movsd " << lbl << "(%rip), %xmm0\n";
         }
         else if (auto* id = dynamic_cast<IdentifierExp*>(e->left)) {
-            if (isFloatVar[id->name])
+            if (isFloatVar[id->name]) {
                 out << "movsd " << id->name << "(%rip), %xmm0\n";
-            else {
+            } else {
                 out << "movq " << id->name << "(%rip), %rax\n";
                 out << "cvtsi2sd %rax, %xmm0\n";
             }
         }
         else if (auto* rec = dynamic_cast<RecordTIdentifierExp*>(e->left)) {
             std::string lbl = rec->base + "." + rec->field;
-            if (isFloatVar[lbl])
+            if (isFloatVar[lbl]) {
                 out << "movsd " << lbl << "(%rip), %xmm0\n";
-            else {
+            } else {
                 out << "movq " << lbl << "(%rip), %rax\n";
                 out << "cvtsi2sd %rax, %xmm0\n";
             }
         }
         else {
             e->left->accept(this);
-            if (!leftF) out << "cvtsi2sd %rax, %xmm0\n";
+            if (!leftF) {
+                out << "cvtsi2sd %rax, %xmm0\n";
+            }
         }
 
+        // cargar operando derecho en xmm1
         if (auto* fe = dynamic_cast<FloatExp*>(e->right)) {
-            std::string lbl = literalLabelMap[ std::to_string(fe->value) ];
+            std::string lbl = literalLabelMap[std::to_string(fe->value)];
             out << "movsd " << lbl << "(%rip), %xmm1\n";
         }
         else if (auto* id = dynamic_cast<IdentifierExp*>(e->right)) {
-            if (isFloatVar[id->name])
+            if (isFloatVar[id->name]) {
                 out << "movsd " << id->name << "(%rip), %xmm1\n";
-            else {
+            } else {
                 out << "movq " << id->name << "(%rip), %rax\n";
                 out << "cvtsi2sd %rax, %xmm1\n";
             }
         }
         else if (auto* rec = dynamic_cast<RecordTIdentifierExp*>(e->right)) {
             std::string lbl = rec->base + "." + rec->field;
-            if (isFloatVar[lbl])
+            if (isFloatVar[lbl]) {
                 out << "movsd " << lbl << "(%rip), %xmm1\n";
-            else {
+            } else {
                 out << "movq " << lbl << "(%rip), %rax\n";
                 out << "cvtsi2sd %rax, %xmm1\n";
             }
         }
         else {
             e->right->accept(this);
-            if (!rightF)
+            if (!rightF) {
                 out << "cvtsi2sd %rax, %xmm1\n";
-            else
-                out << "movaps %xmm0, %xmm1\n";
+            }
         }
 
         switch (e->op) {
-            case PLUS_OP:  out << "addsd %xmm1, %xmm0\n"; break;
-            case MINUS_OP: out << "subsd %xmm1, %xmm0\n"; break;
-            case MUL_OP:   out << "mulsd %xmm1, %xmm0\n"; break;
-            case DIV_OP:   out << "divsd %xmm1, %xmm0\n"; break;
-            default: break;
+            case PLUS_OP:
+                out << "addsd %xmm1, %xmm0\n";
+                break;
+            case MINUS_OP:
+                out << "subsd %xmm1, %xmm0\n";
+                break;
+            case MUL_OP:
+                out << "mulsd %xmm1, %xmm0\n";
+                break;
+            case DIV_OP:
+                out << "divsd %xmm1, %xmm0\n";
+                break;
+            case LT_OP:
+                out << "ucomisd %xmm1, %xmm0\n";
+                out << "setb %al\n";
+                out << "movzbq %al, %rax\n";
+                break;
+            case GT_OP:
+                out << "ucomisd %xmm1, %xmm0\n";
+                out << "seta %al\n";
+                out << "movzbq %al, %rax\n";
+                break;
+            case LE_OP:
+                out << "ucomisd %xmm1, %xmm0\n";
+                out << "setbe %al\n";
+                out << "movzbq %al, %rax\n";
+                break;
+            case GE_OP:
+                out << "ucomisd %xmm1, %xmm0\n";
+                out << "setae %al\n";
+                out << "movzbq %al, %rax\n";
+                break;
+            case EQ_OP:
+                out << "ucomisd %xmm1, %xmm0\n";
+                out << "sete %al\n";
+                out << "movzbq %al, %rax\n";
+                break;
+            default:
+                break;
         }
         return 0;
     }
 
-
+    // enteros
     e->left->accept(this);
     out << "pushq %rax\n";
     e->right->accept(this);
-    out << "movq %rax, %rbx\n"
-        << "popq %rax\n";
+    out << "movq %rax, %rbx\n";
+    out << "popq %rax\n";
 
     switch (e->op) {
-        case PLUS_OP: out << "addq %rbx, %rax\n"; break;
-        case MINUS_OP: out << "subq %rbx, %rax\n"; break;
-        case MUL_OP: out << "imulq %rbx, %rax\n"; break;
-        case DIV_OP: out << "cqto\nidivq %rbx\n"; break;
-        case GT_OP: out << "cmpq %rbx, %rax\nsetg  %al\nmovzbq %al, %rax\n"; break;
-        case LT_OP: out << "cmpq %rbx, %rax\nsetl  %al\nmovzbq %al, %rax\n"; break;
-        case GE_OP: out << "cmpq %rbx, %rax\nsetge %al\nmovzbq %al, %rax\n"; break;
-        case LE_OP: out << "cmpq %rbx, %rax\nsetle %al\nmovzbq %al, %rax\n"; break;
-        case EQ_OP: out << "cmpq %rbx, %rax\nsete  %al\nmovzbq %al, %rax\n"; break;
-        default: break;
+        case PLUS_OP:
+            out << "addq %rbx, %rax\n";
+            break;
+        case MINUS_OP:
+            out << "subq %rbx, %rax\n";
+            break;
+        case MUL_OP:
+            out << "imulq %rbx, %rax\n";
+            break;
+        case DIV_OP:
+            out << "cqto\n";
+            out << "idivq %rbx\n";
+            break;
+        case LT_OP:
+            out << "cmpq %rbx, %rax\n";
+            out << "setl %al\n";
+            out << "movzbq %al, %rax\n";
+            break;
+        case GT_OP:
+            out << "cmpq %rbx, %rax\n";
+            out << "setg %al\n";
+            out << "movzbq %al, %rax\n";
+            break;
+        case LE_OP:
+            out << "cmpq %rbx, %rax\n";
+            out << "setle %al\n";
+            out << "movzbq %al, %rax\n";
+            break;
+        case GE_OP:
+            out << "cmpq %rbx, %rax\n";
+            out << "setge %al\n";
+            out << "movzbq %al, %rax\n";
+            break;
+        case EQ_OP:
+            out << "cmpq %rbx, %rax\n";
+            out << "sete %al\n";
+            out << "movzbq %al, %rax\n";
+            break;
+        default:
+            break;
     }
     return 0;
 }
+
 
 void CodeGenVisitor::visit(AssignStatement* s) {
     auto idExp = dynamic_cast<IdentifierExp*>(s->lhs);
@@ -1389,4 +1458,33 @@ void CodeGenVisitor::visit(ForStatement* s) {
 
 void CodeGenVisitor::visit(Program* p) {
     generate(p);
+}
+
+float PrintVisitor::visit(MethodCallExp* e) {
+    e->base->accept(this);
+    std::cout << "." << e->method << "(";
+    for (size_t i = 0; i < e->args.size(); ++i) {
+        if (i) std::cout << ", ";
+        e->args[i]->accept(this);
+    }
+    std::cout << ")";
+    return 0;
+}
+
+float EVALVisitor::visit(MethodCallExp* e) {
+    float v = e->base->accept(this);
+    return std::floor(v + 0.5f);
+}
+
+float TYPEVisitor::visit(MethodCallExp* e) {
+    e->base->accept(this);
+    e->type = "integer";
+    return 0;
+}
+
+float CodeGenVisitor::visit(MethodCallExp* e) {
+    e->base->accept(this);
+    out << "  roundsd $0, %xmm0, %xmm0\n";
+    out << "  cvttsd2si %xmm0, %rax\n";
+    return 0;
 }

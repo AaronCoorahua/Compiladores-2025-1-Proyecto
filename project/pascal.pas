@@ -1,12 +1,11 @@
 program suma1;
 
 var
-  a, c : real;
-  b : integer;
+  a: real;
+  b: integer;
 
 begin
-  a := 6.3;
-  b := 3;
-  c := a / b;
-  writeln(c);
+  a := 6.6;
+  b := 1 + a.toInt();
+  writeln(b);
 end.
