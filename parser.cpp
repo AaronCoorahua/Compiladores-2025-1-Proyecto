@@ -221,6 +221,41 @@ std::vector<RecordVarDec*> Parser::parseRecordType() {
     return fields;
 }
 
+// field_list     ::= field (';' field)* ';'
+
+std::vector<RecordVarDec*> Parser::parseFieldList() {
+    std::vector<RecordVarDec*> fields;
+
+    
+    while (current->type == Token::ID) {
+   
+        std::list<std::string> names;
+        names.push_back(current->text);
+        match(Token::ID);
+
+        while (match(Token::COMA)) {
+            names.push_back(current->text);
+            match(Token::ID);
+        }
+
+     
+        match(Token::COLON);
+        std::string fieldType = current->text;
+        match(Token::ID);
+
+
+        match(Token::PC);
+
+   
+        for (auto& nm : names) {
+            fields.push_back(new RecordVarDec(nm, fieldType));
+        }
+    }
+
+    return fields;
+}
+
+
 Stm* Parser::parseStatement(){
 
 
@@ -407,36 +442,5 @@ Body* Parser::parseBlockOrStmt() {
 
 
 
-std::vector<RecordVarDec*> Parser::parseFieldList() {
-    std::vector<RecordVarDec*> fields;
-
-    
-    while (current->type == Token::ID) {
-   
-        std::list<std::string> names;
-        names.push_back(current->text);
-        match(Token::ID);
-
-        while (match(Token::COMA)) {
-            names.push_back(current->text);
-            match(Token::ID);
-        }
-
-     
-        match(Token::COLON);
-        std::string fieldType = current->text;
-        match(Token::ID);
-
-
-        match(Token::PC);
-
-   
-        for (auto& nm : names) {
-            fields.push_back(new RecordVarDec(nm, fieldType));
-        }
-    }
-
-    return fields;
-}
 
 
