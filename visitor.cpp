@@ -4,6 +4,7 @@
 #include <string>
 #include <iomanip>
 #include <unordered_map>
+#include <cmath>
 
 static std::unordered_map<std::string,std::string> literalLabelMap;
 

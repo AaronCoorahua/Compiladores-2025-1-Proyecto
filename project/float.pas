@@ -6,7 +6,7 @@ var
 
 
 begin
-  y := -4;
+  y := 4.5;
   x := y.toInt();
 
   if x > y then
