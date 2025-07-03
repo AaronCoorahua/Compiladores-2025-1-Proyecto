@@ -46,6 +46,7 @@ Factor         ::= id
                 | '(' CExp ')'
                 | id '(' ArgList? ')'
 		        | id '.' id
+                | id '.' id '(' ArgList? ')' 
 
 
 ArgList        ::= CExp (',' CExp)*

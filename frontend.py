@@ -151,10 +151,10 @@ class PascalFrontend(QWidget):
 
         output_layout = QVBoxLayout()
         output_layout.addWidget(QLabel("📄 Código ensamblador:"))
-        output_layout.addWidget(self.asm_text)
+        output_layout.addWidget(self.asm_text, stretch=3)
         output_layout.addWidget(QLabel("💻 Salida del programa:"))
-        output_layout.addWidget(self.output_text)
-        output_layout.addWidget(self.logo_label)
+        output_layout.addWidget(self.output_text, stretch=1)
+        #output_layout.addWidget(self.logo_label)
         output_panel = QWidget()
         output_panel.setLayout(output_layout)
 

@@ -385,12 +385,10 @@ void EVALVisitor::visit(RecordTAssignStatement* s) {
     env.set_field(s->base, s->field, val);
 }
 
-
 void EVALVisitor::visit(TypeDecList* l) {
     for (auto i :l->typedecs){
         i->accept(this);
     }
-
 }
 
 void EVALVisitor::visit(TypeDec* t) {
@@ -1482,9 +1480,11 @@ float TYPEVisitor::visit(MethodCallExp* e) {
     return 0;
 }
 
+// Convert with Truncation Scalar Double-Precision Floating-Point to Signed Integer
 float CodeGenVisitor::visit(MethodCallExp* e) {
     e->base->accept(this);
     out << "  roundsd $0, %xmm0, %xmm0\n";
     out << "  cvttsd2si %xmm0, %rax\n";
     return 0;
 }
+
