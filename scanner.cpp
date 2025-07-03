@@ -18,6 +18,7 @@ Token* Scanner::nextToken()
 
     if (isdigit(c)) {
         bool hasDot = false;
+        // FLOAT
         while (current < (int)input.size() && (isdigit(input[current]) || (!hasDot && input[current] == '.'))) {
             if (input[current] == '.') hasDot = true;
             current++;
@@ -50,6 +51,7 @@ Token* Scanner::nextToken()
         else if (w == "true") return new Token(Token::TRUE, w, 0, w.size());
         else if (w == "false") return new Token(Token::FALSE, w, 0, w.size());
         else if (w == "return") return new Token(Token::RETURN, w, 0, w.size());
+        // STRUCT
         else if (w == "type") return new Token(Token::TYPE, w, 0, w.size());
         else if (w == "record") return new Token(Token::RECORD, w, 0, w.size());
         else return new Token(Token::ID, w, 0, w.size());
@@ -70,7 +72,6 @@ Token* Scanner::nextToken()
             case ';': return current++, new Token(Token::PC   , c);
             case '.': return current++, new Token(Token::DOT  , c);
 
-            /* comparadores <  <=  */
             case '<':
                 if (current+1 < (int)input.size() && input[current+1]=='=')
                 { current += 2; return new Token(Token::LE , "<=", 0, 2); }

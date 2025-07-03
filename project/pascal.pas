@@ -1,17 +1,12 @@
-program demo;
+program suma1;
 
-var i, resultfor, countback : integer;
+var
+  a, c : real;
+  b : integer;
 
 begin
-  resultfor := 0;
-
-  for i := 1 to 5 do
-    resultfor := resultfor + i;
-  writeln(resultfor);
-
-  for i := 5 downto 1 do
-  begin
-    countback := i;
-    writeln(countback);
-  end;
+  a := 6.3;
+  b := 3;
+  c := a / b;
+  writeln(c);
 end.

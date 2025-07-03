@@ -27,7 +27,7 @@ public:
         NUM, 
         ID,
 
-        // Nnumeros flotantes
+        // FLOATS
         NUM_FLOAT,
 
         // palabras clave
@@ -48,8 +48,11 @@ public:
         RETURN,
         TRUE, 
         FALSE,
+
+        // STRUCT
         TYPE,
         RECORD,
+
         ERR, 
         END
     };
